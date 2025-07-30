@@ -1,316 +1,342 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Layout from '../components/Layout';
-import { Award, Upload, File, Plus, Download, Trash2, Search } from 'lucide-react';
+import { Award, Star, Edit3, Save, FileDown } from 'lucide-react';
 
-interface Certificate {
-  id: string;
-  name: string;
-  studentName: string;
-  issueDate: string;
-  type: string;
-  fileUrl?: string;
+interface CertificateProps {
+  recipientName: string;
+  courseName: string;
+  completionDate: string;
+  instructorName?: string;
+  organizationName?: string;
+  certificateId?: string;
 }
 
-const Certificates: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'generate' | 'upload'>('generate');
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Form states
-  const [certificateType, setCertificateType] = useState('');
-  const [studentName, setStudentName] = useState('');
-  const [courseName, setCourseName] = useState('');
-  const [issueDate, setIssueDate] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  
-  // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
+const Certificate: React.FC<CertificateProps> = ({
+  recipientName,
+  courseName,
+  completionDate,
+  instructorName = "John Smith",
+  organizationName = "Excellence Academy",
+  certificateId = "CERT-2024-001"
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableData, setEditableData] = useState({
+    recipientName,
+    courseName,
+    completionDate,
+    instructorName,
+    organizationName,
+    certificateId
+  });
+  const certificateRef = useRef<HTMLDivElement>(null);
+
+  // Update editable data when editing mode changes
+  const handleEdit = () => {
+    setIsEditing(!isEditing);
+  };
+
+  // Save changes
+  const handleSave = () => {
+    setIsEditing(false);
+    // In a real app, you would save to backend here
+  };
+
+  // Download certificate as image
+  const downloadCertificate = async () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        // Create certificate background
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add blue border
+        ctx.strokeStyle = '#3B82F6';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+        
+        // Add decorative border
+        ctx.setLineDash([10, 5]);
+        ctx.strokeStyle = '#60A5FA';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+        ctx.setLineDash([]);
+        
+        // Add title
+        ctx.fillStyle = '#1F2937';
+        ctx.font = 'bold 42px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 140);
+        
+        // Add content
+        ctx.font = '28px Arial';
+        ctx.fillText('This is to certify that', canvas.width / 2, 220);
+        
+        ctx.font = 'bold 38px Arial';
+        ctx.fillStyle = '#1F2937';
+        ctx.fillText(editableData.recipientName, canvas.width / 2, 300);
+        
+        ctx.font = '28px Arial';
+        ctx.fillStyle = '#4B5563';
+        ctx.fillText('has successfully completed the course', canvas.width / 2, 360);
+        
+        ctx.font = 'bold 32px Arial';
+        ctx.fillStyle = '#1D4ED8';
+        ctx.fillText(editableData.courseName, canvas.width / 2, 420);
+        
+        ctx.font = '24px Arial';
+        ctx.fillStyle = '#6B7280';
+        ctx.fillText(`Completed on ${editableData.completionDate}`, canvas.width / 2, 500);
+        
+        // Add footer
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#374151';
+        ctx.textAlign = 'left';
+        ctx.fillText(editableData.instructorName, 150, 650);
+        ctx.fillText('Course Instructor', 150, 675);
+        
+        ctx.textAlign = 'right';
+        ctx.fillText('Director', canvas.width - 150, 650);
+        ctx.fillText(editableData.organizationName, canvas.width - 150, 675);
+        
+        ctx.textAlign = 'center';
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#9CA3AF';
+        ctx.fillText(`Certificate ID: ${editableData.certificateId}`, canvas.width / 2, 740);
+        
+        // Convert to blob and download
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `certificate-${editableData.recipientName.replace(/\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      alert('Error generating certificate. Please try again.');
     }
-  };
-  
-  // Handle generate certificate form submission
-  const handleGenerateCertificate = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // In a real application, you would call an API to generate the certificate
-    // For demo purposes, we'll add it to our local state
-    const newCertificate: Certificate = {
-      id: Date.now().toString(),
-      name: `${certificateType} - ${courseName}`,
-      studentName,
-      issueDate,
-      type: certificateType,
-      fileUrl: 'sample-certificate.pdf' // This would be a URL from your backend
-    };
-    
-    setCertificates([...certificates, newCertificate]);
-    // Reset form
-    setCertificateType('');
-    setStudentName('');
-    setCourseName('');
-    setIssueDate('');
-  };
-  
-  // Handle upload certificate form submission
-  const handleUploadCertificate = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!uploadedFile) return;
-    
-    // In a real application, you would upload the file to a server
-    // For demo purposes, we'll add it to our local state
-    const newCertificate: Certificate = {
-      id: Date.now().toString(),
-      name: uploadedFile.name,
-      studentName,
-      issueDate,
-      type: 'Uploaded',
-      fileUrl: URL.createObjectURL(uploadedFile) // Create a local URL for demo
-    };
-    
-    setCertificates([...certificates, newCertificate]);
-    // Reset form
-    setStudentName('');
-    setIssueDate('');
-    setUploadedFile(null);
-  };
-  
-  // Filter certificates based on search term
-  const filteredCertificates = certificates.filter(cert => 
-    cert.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    cert.studentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // Delete certificate
-  const deleteCertificate = (id: string) => {
-    setCertificates(certificates.filter(cert => cert.id !== id));
   };
   return (
     <Layout>
+      <div className="max-w-4xl mx-auto">
+                {/* Control Buttons */}
+        <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center">
+            <Award className="w-8 h-8 text-blue-600 mr-3" />
       <div>
-        <div className="flex items-center mb-6">
-          <Award className="w-8 h-8 text-blue-600 mr-3" />
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Certificates</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Certificate Management</h1>
+              {isEditing && <p className="text-sm text-orange-600 font-medium">✏️ Editing Mode - Click fields to modify</p>}
+            </div>
+          </div>
+          <div className="flex space-x-3">
+            <button 
+              onClick={isEditing ? handleSave : handleEdit}
+              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                isEditing 
+                  ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg' 
+                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+              }`}
+            >
+              {isEditing ? <Save size={16} className="mr-2" /> : <Edit3 size={16} className="mr-2" />}
+              {isEditing ? 'Save Changes' : 'Edit Certificate'}
+            </button>
+            <button 
+              onClick={downloadCertificate}
+              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-md"
+            >
+              <FileDown size={16} className="mr-2" />
+              Download PDF
+            </button>
+          </div>
         </div>
         
-        {/* Tab Navigation */}
-        <div className="flex mb-6 border-b">
-          <button 
-            onClick={() => setActiveTab('generate')}
-            className={`px-4 py-2 font-medium ${activeTab === 'generate' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
-          >
-            <Plus size={16} className="inline mr-2" />
-            Generate Certificate
-          </button>
-          <button 
-            onClick={() => setActiveTab('upload')}
-            className={`px-4 py-2 font-medium ${activeTab === 'upload' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
-          >
-            <Upload size={16} className="inline mr-2" />
-            Upload Certificate
-          </button>
+        <div className="bg-white shadow-2xl border-8 border-gradient" ref={certificateRef}>
+          {/* Decorative Border */}
+          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
+        {/* Corner Decorations */}
+        <div className="absolute top-0 left-0 w-20 h-20">
+          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 rounded-br-full opacity-10"></div>
         </div>
-        
-        {/* Certificate Generator Form */}
-        {activeTab === 'generate' && (
-          <div className="bg-white rounded-lg shadow-sm p-6 border mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Generate New Certificate</h2>
-            <form onSubmit={handleGenerateCertificate} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Certificate Type</label>
-                  <select 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={certificateType}
-                    onChange={(e) => setCertificateType(e.target.value)}
-                    required
-                  >
-                    <option value="">Select Type</option>
-                    <option value="Completion">Course Completion</option>
-                    <option value="Merit">Merit Certificate</option>
-                    <option value="Participation">Participation</option>
-                    <option value="Appreciation">Appreciation</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Student Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Course/Program Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Issue Date</label>
-                  <input 
-                    type="date" 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button 
-                  type="submit" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out flex items-center"
-                >
-                  <Plus size={16} className="mr-1" />
-                  Generate Certificate
-                </button>
-              </div>
-            </form>
+        <div className="absolute top-0 right-0 w-20 h-20">
+          <div className="w-full h-full bg-gradient-to-bl from-blue-600 to-indigo-600 rounded-bl-full opacity-10"></div>
+        </div>
+        <div className="absolute bottom-0 left-0 w-20 h-20">
+          <div className="w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-tr-full opacity-10"></div>
+        </div>
+        <div className="absolute bottom-0 right-0 w-20 h-20">
+          <div className="w-full h-full bg-gradient-to-tl from-blue-600 to-indigo-600 rounded-tl-full opacity-10"></div>
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center items-center mb-4">
+            <Award className="text-blue-600 w-16 h-16" />
           </div>
-        )}
-        
-        {/* Certificate Upload Form */}
-        {activeTab === 'upload' && (
-          <div className="bg-white rounded-lg shadow-sm p-6 border mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Upload Certificate</h2>
-            <form onSubmit={handleUploadCertificate} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Certificate File (PDF)</label>
-                  <div className="mt-1 flex items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div className="space-y-1 text-center">
-                      <File className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
-                          <span>Upload a file</span>
-                          <input 
-                            id="file-upload" 
-                            name="file-upload" 
-                            type="file" 
-                            accept=".pdf" 
-                            className="sr-only"
-                            onChange={handleFileUpload}
-                            required
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">PDF files only</p>
-                      {uploadedFile && (
-                        <p className="text-sm text-green-600 mt-2">{uploadedFile.name} selected</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Student Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Issue Date</label>
-                  <input 
-                    type="date" 
-                    className="w-full border border-gray-300 rounded-md p-2 mt-1"
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button 
-                  type="submit" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out flex items-center"
-                  disabled={!uploadedFile}
-                >
-                  <Upload size={16} className="mr-1" />
-                  Upload Certificate
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-        
-        {/* Certificate List */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">Certificates List</h2>
-            <div className="relative">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 tracking-wide">
+            CERTIFICATE OF COMPLETION
+          </h1>
+          <div className="w-32 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto rounded-full"></div>
+        </div>
+
+                 {/* Content */}
+         <div className="text-center mb-8">
+           <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+             This is to certify that
+           </p>
+           
+           <div className="mb-6">
+             {isEditing ? (
+               <input
+                 type="text"
+                 value={editableData.recipientName}
+                 onChange={(e) => setEditableData({...editableData, recipientName: e.target.value})}
+                 className="text-5xl font-bold text-gray-800 leading-tight bg-transparent border-b-2 border-blue-300 text-center w-full max-w-2xl mx-auto focus:outline-none focus:border-blue-500 px-4 py-2"
+                 placeholder="Recipient Name"
+               />
+             ) : (
+               <h2 className="text-5xl font-bold text-gray-800 leading-tight">
+                 {editableData.recipientName}
+               </h2>
+             )}
+           </div>
+           
+           <p className="text-lg text-gray-600 mb-4">
+             has successfully completed the course
+           </p>
+           
+           <div className="mb-8">
+             {isEditing ? (
+               <input
+                 type="text"
+                 value={editableData.courseName}
+                 onChange={(e) => setEditableData({...editableData, courseName: e.target.value})}
+                 className="text-3xl font-semibold text-blue-700 leading-relaxed bg-transparent border-b-2 border-blue-300 text-center w-full max-w-xl mx-auto focus:outline-none focus:border-blue-500 px-4 py-2"
+                 placeholder="Course Name"
+               />
+             ) : (
+               <h3 className="text-3xl font-semibold text-blue-700 leading-relaxed">
+                 {editableData.courseName}
+               </h3>
+             )}
+           </div>
+           
+           <div className="flex justify-center items-center mb-8">
+             <Star className="text-yellow-500 w-6 h-6 mr-2" />
+             {isEditing ? (
+               <div className="flex items-center space-x-2">
+                 <span className="text-lg text-gray-600">Completed on</span>
+                 <input
+                   type="date"
+                   value={editableData.completionDate}
+                   onChange={(e) => setEditableData({...editableData, completionDate: e.target.value})}
+                   className="text-lg text-gray-600 bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1"
+                 />
+               </div>
+             ) : (
+               <p className="text-lg text-gray-600">
+                 Completed on {editableData.completionDate}
+               </p>
+             )}
+             <Star className="text-yellow-500 w-6 h-6 ml-2" />
+           </div>
+         </div>
+
+                 {/* Footer */}
+         <div className="flex justify-between items-end mt-12">
+           <div className="text-center flex-1">
+             <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto"></div>
+             {isEditing ? (
+               <input
+                 type="text"
+                 value={editableData.instructorName}
+                 onChange={(e) => setEditableData({...editableData, instructorName: e.target.value})}
+                 className="text-sm text-gray-600 font-medium bg-transparent border-b border-gray-300 text-center w-48 focus:outline-none focus:border-blue-500 mx-auto block"
+                 placeholder="Instructor Name"
+               />
+             ) : (
+               <p className="text-sm text-gray-600 font-medium">{editableData.instructorName}</p>
+             )}
+             <p className="text-xs text-gray-500 mt-1">Course Instructor</p>
+           </div>
+           
+           <div className="text-center flex-1">
+             <div className="mb-4">
+               <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                 <Award className="text-white w-10 h-10" />
+               </div>
+             </div>
+             {isEditing ? (
+               <input
+                 type="text"
+                 value={editableData.organizationName}
+                 onChange={(e) => setEditableData({...editableData, organizationName: e.target.value})}
+                 className="text-sm font-bold text-gray-700 bg-transparent border-b border-gray-300 text-center w-full max-w-xs focus:outline-none focus:border-blue-500 mx-auto block"
+                 placeholder="Organization"
+               />
+             ) : (
+               <p className="text-sm font-bold text-gray-700">{editableData.organizationName}</p>
+             )}
+             <p className="text-xs text-gray-500 mt-1">Official Seal</p>
+           </div>
+           
+           <div className="text-center flex-1">
+             <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto"></div>
+             <p className="text-sm text-gray-600 font-medium">Director</p>
+             {isEditing ? (
+               <input
+                 type="text"
+                 value={editableData.organizationName}
+                 onChange={(e) => setEditableData({...editableData, organizationName: e.target.value})}
+                 className="text-xs text-gray-500 bg-transparent border-b border-gray-300 text-center w-48 focus:outline-none focus:border-blue-500 mx-auto block mt-1"
+                 placeholder="Organization"
+               />
+             ) : (
+               <p className="text-xs text-gray-500 mt-1">{editableData.organizationName}</p>
+             )}
+           </div>
+         </div>
+
+        {/* Certificate ID */}
+        <div className="mt-8 text-center">
+          {isEditing ? (
+            <div className="flex justify-center items-center space-x-2">
+              <span className="text-xs text-gray-500">Certificate ID:</span>
               <input
                 type="text"
-                placeholder="Search certificates..."
-                className="border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={editableData.certificateId}
+                onChange={(e) => setEditableData({...editableData, certificateId: e.target.value})}
+                className="text-xs text-gray-500 bg-transparent border-b border-gray-300 text-center w-40 focus:outline-none focus:border-blue-500 px-2 py-1"
+                placeholder="Certificate ID"
               />
-              <Search className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-          
-          {filteredCertificates.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <File className="mx-auto h-12 w-12 text-gray-300 mb-2" />
-              <p>No certificates found</p>
-              <p className="text-sm">Generate or upload certificates to see them here</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <th className="p-4">Certificate</th>
-                    <th className="p-4">Student</th>
-                    <th className="p-4">Type</th>
-                    <th className="p-4">Issue Date</th>
-                    <th className="p-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredCertificates.map((cert) => (
-                    <tr key={cert.id}>
-                      <td className="p-4 text-gray-900 font-medium">{cert.name}</td>
-                      <td className="p-4 text-gray-600">{cert.studentName}</td>
-                      <td className="p-4 text-gray-600">{cert.type}</td>
-                      <td className="p-4 text-gray-600">{cert.issueDate}</td>
-                      <td className="p-4 text-right space-x-2">
-                        <button 
-                          className="text-blue-600 hover:text-blue-800"
-                          onClick={() => cert.fileUrl && window.open(cert.fileUrl, '_blank')}
-                        >
-                          <Download size={16} className="inline" />
-                        </button>
-                        <button 
-                          className="text-red-600 hover:text-red-800 ml-3"
-                          onClick={() => deleteCertificate(cert.id)}
-                        >
-                          <Trash2 size={16} className="inline" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <p className="text-xs text-gray-500">Certificate ID: {editableData.certificateId}</p>
           )}
+        </div>
+
+        {/* Decorative Elements */}
+            <div className="absolute top-1/2 left-4 transform -translate-y-1/2 opacity-5">
+              <Award className="w-32 h-32 text-blue-600" />
+            </div>
+            <div className="absolute top-1/2 right-4 transform -translate-y-1/2 opacity-5">
+              <Award className="w-32 h-32 text-blue-600" />
+            </div>
+        </div>
         </div>
       </div>
     </Layout>
   );
 };
 
-export default Certificates;
+export default Certificate;

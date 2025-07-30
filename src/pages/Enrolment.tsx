@@ -34,287 +34,173 @@ const Enrolment: React.FC = () => {
     <Layout>
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8 border print:border-0 print:shadow-none print:p-0 print:bg-white">
         {/* Institution Header */}
-        <div className="flex flex-col items-center mb-8 border-b pb-4 print:border-b print:pb-2">
-          <div className="flex items-center w-full justify-between mb-2">
-            <div className="w-24 h-24 bg-gray-200 flex items-center justify-center rounded print:border print:border-gray-400">
-              {/* Logo Placeholder */}
-              <span className="text-gray-400 text-xs">Logo</span>
+        <div className="text-center mb-8 border-b-2 border-gray-800 pb-4">
+          <h1 className="text-3xl font-bold text-gray-800 tracking-wide">
+            M.H ACADEMY
+          </h1>
+          <p className="text-sm text-gray-600 mt-2">ENROLLMENT FORM</p>
+        </div>
+
+        {/* Institution Details */}
+        <div className="space-y-6 mb-8">
+          <div className="flex items-start">
+            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Office Address:</span>
+            <div className="flex-1 border-b border-gray-400 pb-1">
+              <input 
+                type="text" 
+                className="w-full bg-transparent focus:outline-none text-gray-700"
+                placeholder="28, Pocket 1st, Sector 24, Rohini, New Delhi-110085"
+              />
             </div>
-            <div className="flex-1 text-center">
-              <h1 className="text-2xl font-bold text-gray-800 uppercase">Institution Name</h1>
-              <p className="text-gray-600 text-sm">123 Main Street, City, State, 123456</p>
-              <p className="text-gray-600 text-sm">Contact: (123) 456-7890 | Email: info@institution.edu</p>
-            </div>
-            <div className="w-24 h-24"></div>
           </div>
-          <h2 className="text-xl font-semibold text-blue-700 mt-2">Student Enrollment Form</h2>
+
+          <div className="flex items-center">
+            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Mobile No.:</span>
+            <div className="flex-1 border-b border-gray-400 pb-1">
+              <input 
+                type="text" 
+                className="w-full bg-transparent focus:outline-none text-gray-700"
+                placeholder="9958610292"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Email id:</span>
+            <div className="flex-1 border-b border-gray-400 pb-1">
+              <input 
+                type="email" 
+                className="w-full bg-transparent focus:outline-none text-gray-700"
+                placeholder="mhacademy.online@gmail.com & Sonu21sharma1962@gmail.com"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Form Start */}
-        <form className="space-y-8 print:space-y-4" onSubmit={handleSubmit}>
-          {/* Student Personal Details */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Student Personal Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium">Full Name</label>
-                  <input type="text" className="form-input w-full border rounded p-2" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Date of Birth</label>
-                  <input type="date" className="form-input w-full border rounded p-2" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Age</label>
-                  <input type="number" className="form-input w-full border rounded p-2" min="1" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Gender</label>
-                  <select className="form-select w-full border rounded p-2">
-                    <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Nationality</label>
-                  <input type="text" className="form-input w-full border rounded p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Mother Tongue</label>
-                  <input type="text" className="form-input w-full border rounded p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Category</label>
-                  <select className="form-select w-full border rounded p-2">
-                    <option value="">Select</option>
-                    <option>General</option>
-                    <option>SC</option>
-                    <option>ST</option>
-                    <option>OBC</option>
-                    <option>EWS</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Religion</label>
-                  <input type="text" className="form-input w-full border rounded p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Blood Group</label>
-                  <input type="text" className="form-input w-full border rounded p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Aadhaar/ID Number</label>
-                  <input type="text" className="form-input w-full border rounded p-2" />
-                </div>
-              </div>
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-32 h-40 border border-gray-400 flex flex-col items-center justify-center bg-gray-50 mb-2 relative overflow-hidden">
-                  {studentPhoto ? (
-                    <img src={studentPhoto} alt="Student" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-gray-400 text-xs">Passport Size Photo</span>
-                  )}
-                  <label className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white text-xs flex items-center justify-center py-1 cursor-pointer hover:bg-opacity-70">
-                    <Upload size={12} className="mr-1" />
-                    Upload
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={(e) => handleImageUpload(e, setStudentPhoto)} 
-                    />
-                  </label>
-                </div>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Main Form Content */}
+          <div className="space-y-6">
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Student Full Name:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700 font-medium"
+                  placeholder="Enter student name"
+                  required
+                />
               </div>
             </div>
-          </section>
 
-          {/* Contact Information */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Contact Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium">Complete Address</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">City</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">State</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Pin Code</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Mobile Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Email ID</label>
-                <input type="email" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Alternate Contact Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Father's Name:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="Enter father's name"
+                />
               </div>
             </div>
-          </section>
 
-          {/* Parent/Guardian Details */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Parent/Guardian Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Father */}
-              <div>
-                <label className="block text-sm font-medium">Father's Name</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Qualification</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Occupation</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Mobile Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Email</label>
-                <input type="email" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Annual Income</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              {/* Mother */}
-              <div>
-                <label className="block text-sm font-medium">Mother's Name</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Qualification</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Occupation</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Mobile Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Email</label>
-                <input type="email" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Annual Income</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              {/* Guardian (Optional) */}
-              <div>
-                <label className="block text-sm font-medium">Guardian's Name (Optional)</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Qualification</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Occupation</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Mobile Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Email</label>
-                <input type="email" className="form-input w-full border rounded p-2" />
-                <label className="block text-sm font-medium mt-2">Annual Income</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Date of Birth:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="date" 
+                  className="bg-transparent focus:outline-none text-gray-700"
+                  required
+                />
               </div>
             </div>
-          </section>
 
-          {/* Previous Academic Details */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Previous Academic Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-medium">Last School/College</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Board/University</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Class/Year Completed</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Roll Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Percentage/Grade</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Transfer Certificate No.</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-            </div>
-          </section>
-
-          {/* Course/Class Enrollment Details */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Course/Class Enrollment Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium">Academic Session</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Class/Course Name</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Admission Number</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Stream/Subjects</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Mode of Study</label>
-                <select className="form-select w-full border rounded p-2">
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-20 inline-block">Gender:</span>
+              <div className="w-32 border-b border-gray-400 pb-1 mr-4">
+                <select className="bg-transparent focus:outline-none text-gray-700 w-full">
                   <option value="">Select</option>
-                  <option>Regular</option>
-                  <option>Distance</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
                 </select>
               </div>
+              <span className="text-lg font-medium text-gray-700 w-20 inline-block ml-4">Age:</span>
+              <div className="w-20 border-b border-gray-400 pb-1">
+                <input 
+                  type="number" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  min="1"
+                />
+              </div>
             </div>
-          </section>
 
-          {/* Documents Submitted Checklist */}
-          <section>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Documents Submitted Checklist</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="birth-cert" />
-                <label htmlFor="birth-cert" className="text-sm">Birth Certificate</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="marksheet" />
-                <label htmlFor="marksheet" className="text-sm">Previous Marksheet</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="tc" />
-                <label htmlFor="tc" className="text-sm">Transfer Certificate</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="migration" />
-                <label htmlFor="migration" className="text-sm">Migration Certificate</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="aadhaar" />
-                <label htmlFor="aadhaar" className="text-sm">Aadhaar Card</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="photos" />
-                <label htmlFor="photos" className="text-sm">Photos</label>
-              </div>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-2" id="caste" />
-                <label htmlFor="caste" className="text-sm">Caste/Category Certificate</label>
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Complete Address:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="Enter complete address"
+                />
               </div>
             </div>
-          </section>
+
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Mobile Number:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="Enter mobile number"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Course/Program:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="Enter course/program name"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Academic Session:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="e.g., 2024-2025"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Enrollment Fee Rs.:</span>
+              <div className="w-32 border-b border-gray-400 pb-1 mr-4">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="5000/-"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-start">
+              <span className="text-lg font-medium text-gray-700 w-20 inline-block">Remarks:</span>
+              <div className="flex-1 border-b border-gray-400 pb-1">
+                <input 
+                  type="text" 
+                  className="w-full bg-transparent focus:outline-none text-gray-700"
+                  placeholder="Any additional remarks"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Declaration Section */}
           <section className="mt-8 print:mt-4">
