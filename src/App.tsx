@@ -11,6 +11,8 @@ import Batch from './pages/Students/Batch';
 import Courses from './pages/Students/Courses';
 import Fees from './pages/Students/Fees';
 import Revenue from './pages/Students/Revenue';
+import Certificates from './pages/Certificates';
+import Enrolment from './pages/Enrolment';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="fees" element={<Fees />} />
           <Route path="revenue" element={<Revenue />} />
         </Route>
+        <Route path="/certificates" element={<Certificates />} />
+        <Route path="/enrolment" element={<Enrolment />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>

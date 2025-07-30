@@ -10,7 +10,9 @@ import {
   CreditCard,
   BookOpen,
   GraduationCap,
-  DollarSign
+  DollarSign,
+  Award,
+  ClipboardList
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -166,6 +168,36 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
               </div>
             )}
           </div>
+
+          {/* Certificate Section */}
+          <Link
+            to="/certificates"
+            onClick={handleLinkClick}
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              isActive('/certificates')
+                ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {/* Use Award icon for certificate */}
+            <Award className="w-5 h-5 mr-3" />
+            Certificates
+          </Link>
+
+          {/* Enrolment Section */}
+          <Link
+            to="/enrolment"
+            onClick={handleLinkClick}
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              isActive('/enrolment')
+                ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {/* Use ClipboardList icon for enrolment */}
+            <ClipboardList className="w-5 h-5 mr-3" />
+            Enrolment
+          </Link>
         </div>
       </nav>
     </div>
