@@ -1,342 +1,309 @@
 import React, { useState, useRef } from 'react';
 import Layout from '../components/Layout';
-import { Award, Star, Edit3, Save, FileDown } from 'lucide-react';
+import { Award, Edit3, Save, FileDown, Plus, Trash2 } from 'lucide-react';
+import Draggable from 'react-draggable';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-interface CertificateProps {
-  recipientName: string;
-  courseName: string;
-  completionDate: string;
-  instructorName?: string;
-  organizationName?: string;
-  certificateId?: string;
+interface Field {
+  id: number;
+  text: string; // Holds text or image data URL
+  x: number;
+  y: number;
+  fontSize: number;
+  fontWeight: 'normal' | 'bold';
+  color: string;
+  fontFamily: string;
+  type: 'text' | 'date' | 'signature';
+  width?: number;
+  height?: number;
 }
 
-const Certificate: React.FC<CertificateProps> = ({
-  recipientName,
-  courseName,
-  completionDate,
-  instructorName = "John Smith",
-  organizationName = "Excellence Academy",
-  certificateId = "CERT-2024-001"
-}) => {
+const googleFonts = [
+  { name: 'Roboto', family: 'Roboto, sans-serif' },
+  { name: 'Merriweather', family: 'Merriweather, serif' },
+  { name: 'Playfair Display', family: 'Playfair Display, serif' },
+  { name: 'Montserrat', family: 'Montserrat, sans-serif' },
+  { name: 'Great Vibes', family: 'Great Vibes, cursive' },
+];
+
+const Certificates: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editableData, setEditableData] = useState({
-    recipientName,
-    courseName,
-    completionDate,
-    instructorName,
-    organizationName,
-    certificateId
-  });
   const certificateRef = useRef<HTMLDivElement>(null);
+  
+  const [fields, setFields] = useState<Field[]>([
+    { id: 1, text: 'Recipient Name', x: 350, y: 280, fontSize: 48, fontWeight: 'bold', color: '#1F2937', fontFamily: 'Great Vibes, cursive', type: 'text' },
+    { id: 2, text: 'For successfully completing the', x: 320, y: 350, fontSize: 20, fontWeight: 'normal', color: '#4B5563', fontFamily: 'Merriweather, serif', type: 'text' },
+    { id: 3, text: 'Course Name', x: 400, y: 380, fontSize: 32, fontWeight: 'bold', color: '#1D4ED8', fontFamily: 'Playfair Display, serif', type: 'text' },
+    { id: 4, text: new Date().toISOString().split('T')[0], x: 420, y: 430, fontSize: 20, fontWeight: 'normal', color: '#4B5563', fontFamily: 'Merriweather, serif', type: 'date' },
+    { id: 5, text: 'University of Higher Learning', x: 300, y: 100, fontSize: 28, fontWeight: 'bold', color: '#374151', fontFamily: 'Merriweather, serif', type: 'text' },
+    { id: 6, text: 'CERTIFICATE', x: 420, y: 40, fontSize: 52, fontWeight: 'bold', color: '#1F2937', fontFamily: 'Playfair Display, serif', type: 'text' },
+    { id: 7, text: 'OF ACHIEVEMENT', x: 410, y: 150, fontSize: 24, fontWeight: 'normal', color: '#4B5563', fontFamily: 'Merriweather, serif', type: 'text' },
+    
+    // Single, centered signature block
+    { id: 8, text: '', x: 380, y: 480, fontSize: 0, fontWeight: 'normal', color: '', fontFamily: '', type: 'signature', width: 200, height: 50 },
+    { id: 10, text: 'Authorized Signature', x: 410, y: 540, fontSize: 16, fontWeight: 'bold', color: '#4B5563', fontFamily: 'Merriweather, serif', type: 'text' },
+  ]);
 
-  // Update editable data when editing mode changes
-  const handleEdit = () => {
-    setIsEditing(!isEditing);
+  const handleDragStop = (id: number, e: any, data: any) => {
+    setFields(fields.map(field => (field.id === id ? { ...field, x: data.x, y: data.y } : field)));
   };
 
-  // Save changes
-  const handleSave = () => {
-    setIsEditing(false);
-    // In a real app, you would save to backend here
+  const handleTextChange = (id: number, newText: string) => {
+    setFields(fields.map(field => (field.id === id ? { ...field, text: newText } : field)));
   };
 
-  // Download certificate as image
-  const downloadCertificate = async () => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1200;
-      canvas.height = 800;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        // Create certificate background
-        ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Add blue border
-        ctx.strokeStyle = '#3B82F6';
-        ctx.lineWidth = 8;
-        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-        
-        // Add decorative border
-        ctx.setLineDash([10, 5]);
-        ctx.strokeStyle = '#60A5FA';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-        ctx.setLineDash([]);
-        
-        // Add title
-        ctx.fillStyle = '#1F2937';
-        ctx.font = 'bold 42px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('CERTIFICATE OF COMPLETION', canvas.width / 2, 140);
-        
-        // Add content
-        ctx.font = '28px Arial';
-        ctx.fillText('This is to certify that', canvas.width / 2, 220);
-        
-        ctx.font = 'bold 38px Arial';
-        ctx.fillStyle = '#1F2937';
-        ctx.fillText(editableData.recipientName, canvas.width / 2, 300);
-        
-        ctx.font = '28px Arial';
-        ctx.fillStyle = '#4B5563';
-        ctx.fillText('has successfully completed the course', canvas.width / 2, 360);
-        
-        ctx.font = 'bold 32px Arial';
-        ctx.fillStyle = '#1D4ED8';
-        ctx.fillText(editableData.courseName, canvas.width / 2, 420);
-        
-        ctx.font = '24px Arial';
-        ctx.fillStyle = '#6B7280';
-        ctx.fillText(`Completed on ${editableData.completionDate}`, canvas.width / 2, 500);
-        
-        // Add footer
-        ctx.font = '20px Arial';
-        ctx.fillStyle = '#374151';
-        ctx.textAlign = 'left';
-        ctx.fillText(editableData.instructorName, 150, 650);
-        ctx.fillText('Course Instructor', 150, 675);
-        
-        ctx.textAlign = 'right';
-        ctx.fillText('Director', canvas.width - 150, 650);
-        ctx.fillText(editableData.organizationName, canvas.width - 150, 675);
-        
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#9CA3AF';
-        ctx.fillText(`Certificate ID: ${editableData.certificateId}`, canvas.width / 2, 740);
-        
-        // Convert to blob and download
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `certificate-${editableData.recipientName.replace(/\s+/g, '-').toLowerCase()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error generating certificate:', error);
-      alert('Error generating certificate. Please try again.');
+  const handleFontSizeChange = (id: number, delta: number) => {
+    setFields(fields.map(field => (field.id === id ? { ...field, fontSize: Math.max(8, field.fontSize + delta) } : field)));
+  };
+
+  const handleFontChange = (id: number, newFontFamily: string) => {
+    setFields(fields.map(field => (field.id === id ? { ...field, fontFamily: newFontFamily } : field)));
+  };
+  
+  const handleImageUpload = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setFields(fields.map(field => (field.id === id ? { ...field, text: dataUrl } : field)));
+      };
+      reader.readAsDataURL(file);
+    } else {
+        alert("Please upload a valid image file (PNG, JPG).");
     }
   };
+
+  const addField = () => {
+    const newField: Field = {
+      id: Date.now(),
+      text: 'New Field',
+      x: 100,
+      y: 100,
+      fontSize: 20,
+      fontWeight: 'normal',
+      color: '#000000',
+      fontFamily: 'Roboto, sans-serif',
+      type: 'text',
+    };
+    setFields([...fields, newField]);
+  };
+
+  const removeField = (id: number) => {
+    setFields(fields.filter(field => field.id !== id));
+  };
+
+  const downloadPdf = () => {
+    const certificate = certificateRef.current;
+    if (certificate) {
+      const wasEditing = isEditing;
+      setIsEditing(false);
+
+      setTimeout(() => {
+        html2canvas(certificate, { scale: 2, useCORS: true, backgroundColor: null })
+          .then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+              orientation: 'landscape',
+              unit: 'px',
+              format: [canvas.width, canvas.height],
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save('certificate.pdf');
+            
+            if (wasEditing) {
+                setIsEditing(true);
+            }
+          });
+      }, 100);
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
-                {/* Control Buttons */}
-        <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg border">
-          <div className="flex items-center">
-            <Award className="w-8 h-8 text-blue-600 mr-3" />
-      <div>
-              <h1 className="text-2xl font-bold text-gray-800">Certificate Management</h1>
-              {isEditing && <p className="text-sm text-orange-600 font-medium">✏️ Editing Mode - Click fields to modify</p>}
-            </div>
-          </div>
-          <div className="flex space-x-3">
-            <button 
-              onClick={isEditing ? handleSave : handleEdit}
-              className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                isEditing 
-                  ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg' 
-                  : 'bg-gray-600 hover:bg-gray-700 text-white'
-              }`}
+      <div className="container mx-auto p-4 md:p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Certificate Generator</h1>
+          <p className="text-gray-600">Use the controls to edit the certificate. Click and drag fields in edit mode.</p>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          
+          {/* Certificate Preview (main area) */}
+          <div className="w-full md:w-2/3">
+            <div 
+              id="certificate"
+              ref={certificateRef} 
+              className="relative w-full aspect-[1.5/1] bg-cover bg-center bg-no-repeat shadow-2xl overflow-hidden border"
+              style={{ backgroundImage: "url('/certificate-template.jpg')" }}
             >
-              {isEditing ? <Save size={16} className="mr-2" /> : <Edit3 size={16} className="mr-2" />}
-              {isEditing ? 'Save Changes' : 'Edit Certificate'}
-            </button>
-            <button 
-              onClick={downloadCertificate}
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-md"
-            >
-              <FileDown size={16} className="mr-2" />
-              Download PDF
-            </button>
+              {fields.map(field => (
+                <Draggable
+                  key={field.id}
+                  position={{ x: field.x, y: field.y }}
+                  onStop={(e, data) => handleDragStop(field.id, e, data)}
+                  disabled={!isEditing}
+                >
+                  <div 
+                    className="absolute"
+                    style={{
+                      width: field.type === 'signature' ? field.width : 'auto',
+                      height: field.type === 'signature' ? field.height : 'auto',
+                    }}
+                  >
+                    {(() => {
+                        if (field.type === 'signature') {
+                            return (
+                                <div className={`relative w-full h-full ${isEditing ? 'border border-dashed border-blue-500 cursor-move' : ''}`}>
+                                    {field.text ? (
+                                        <img src={field.text} alt="Signature" className="w-full h-full object-contain" />
+                                    ) : (
+                                        isEditing && (
+                                            <div className="w-full h-full flex items-center justify-center bg-gray-100 bg-opacity-75">
+                                                <span className="text-xs text-gray-500">Upload Signature</span>
+                                            </div>
+                                        )
+                                    )}
+                                    {isEditing && (
+                                        <input
+                                            type="file"
+                                            accept="image/png, image/jpeg"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            onChange={(e) => handleImageUpload(field.id, e)}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        }
+                        
+                        // Handler for text and date fields
+                        if (isEditing) {
+                            return (
+                                <div className="p-2 border border-dashed border-blue-500 cursor-move hover:bg-blue-100 hover:bg-opacity-50">
+                                    {field.type === 'date' ? (
+                                        <input
+                                            type="date"
+                                            value={field.text}
+                                            onChange={(e) => handleTextChange(field.id, e.target.value)}
+                                            className="bg-transparent focus:outline-none focus:ring-0 border-none p-0"
+                                            style={{ fontFamily: field.fontFamily, fontSize: `${field.fontSize}px`, fontWeight: field.fontWeight, color: field.color }}
+                                        />
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={field.text}
+                                            onChange={(e) => handleTextChange(field.id, e.target.value)}
+                                            className="bg-transparent focus:outline-none focus:ring-0 border-none p-0"
+                                            style={{ fontFamily: field.fontFamily, fontSize: `${field.fontSize}px`, fontWeight: field.fontWeight, color: field.color, width: `${field.text.length + 3}ch`, minWidth: '50px' }}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        }
+                        
+                        return (
+                             <span style={{ fontFamily: field.fontFamily, fontSize: `${field.fontSize}px`, fontWeight: field.fontWeight, color: field.color }}>
+                                {field.text}
+                            </span>
+                        );
+                    })()}
+                  </div>
+                </Draggable>
+              ))}
+            </div>
           </div>
-        </div>
-        
-        <div className="bg-white shadow-2xl border-8 border-gradient" ref={certificateRef}>
-          {/* Decorative Border */}
-          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
-        {/* Corner Decorations */}
-        <div className="absolute top-0 left-0 w-20 h-20">
-          <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 rounded-br-full opacity-10"></div>
-        </div>
-        <div className="absolute top-0 right-0 w-20 h-20">
-          <div className="w-full h-full bg-gradient-to-bl from-blue-600 to-indigo-600 rounded-bl-full opacity-10"></div>
-        </div>
-        <div className="absolute bottom-0 left-0 w-20 h-20">
-          <div className="w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-tr-full opacity-10"></div>
-        </div>
-        <div className="absolute bottom-0 right-0 w-20 h-20">
-          <div className="w-full h-full bg-gradient-to-tl from-blue-600 to-indigo-600 rounded-tl-full opacity-10"></div>
-        </div>
+          
+          {/* Controls Sidebar */}
+          <div className="w-full md:w-1/3">
+            <div className="sticky top-6">
+              <div className="bg-white p-4 rounded-lg shadow-md border">
+                <div className="flex items-center mb-4">
+                  <Award className="w-8 h-8 text-blue-600 mr-3" />
+                  <h2 className="text-xl font-bold text-gray-800">Editor Controls</h2>
+                </div>
+                
+                <div className="flex space-x-2 mb-4">
+                  <button 
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                      isEditing 
+                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg' 
+                        : 'bg-gray-600 hover:bg-gray-700 text-white'
+                    }`}
+                  >
+                    {isEditing ? <Save size={16} className="mr-2" /> : <Edit3 size={16} className="mr-2" />}
+                    {isEditing ? 'Finish Editing' : 'Edit Mode'}
+                  </button>
+                  <button 
+                    onClick={downloadPdf}
+                    className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-md"
+                  >
+                    <FileDown size={16} className="mr-2" />
+                    Download
+                  </button>
+                </div>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center items-center mb-4">
-            <Award className="text-blue-600 w-16 h-16" />
+                <button
+                    onClick={addField}
+                    className="w-full flex items-center justify-center px-4 py-2 mb-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-md font-medium transition-colors"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add New Field
+                </button>
+                
+                {isEditing && (
+                    <div className="mt-4 space-y-3 max-h-96 overflow-y-auto">
+                        <h3 className="text-lg font-semibold text-gray-700">Field Properties</h3>
+                        {fields.map(field => (
+                            <div key={field.id} className="p-3 bg-gray-50 rounded-lg border space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium text-gray-800 truncate pr-2">
+                                        {field.type === 'signature' ? `Signature Image ${field.id}` : field.text}
+                                    </p>
+                                    <button onClick={() => removeField(field.id)} className="text-red-500 hover:text-red-700 p-1">
+                                        <Trash2 size={16}/>
+                                    </button>
+                                </div>
+
+                                {field.type !== 'signature' && (
+                                    <>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">Font Size</span>
+                                            <div className="flex items-center">
+                                                <button onClick={() => handleFontSizeChange(field.id, -2)} className="px-2 py-1 bg-gray-200 rounded-l text-xs">-</button>
+                                                <span className="px-3 py-1 bg-white border-t border-b text-xs">{field.fontSize}px</span>
+                                                <button onClick={() => handleFontSizeChange(field.id, 2)} className="px-2 py-1 bg-gray-200 rounded-r text-xs">+</button>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">Font Family</span>
+                                            <select
+                                                value={field.fontFamily}
+                                                onChange={(e) => handleFontChange(field.id, e.target.value)}
+                                                className="text-xs border-gray-300 rounded-md w-1/2"
+                                            >
+                                                {googleFonts.map(font => (
+                                                <option key={font.name} value={font.family}>
+                                                    {font.name}
+                                                </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+              </div>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 tracking-wide">
-            CERTIFICATE OF COMPLETION
-          </h1>
-          <div className="w-32 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto rounded-full"></div>
-        </div>
 
-                 {/* Content */}
-         <div className="text-center mb-8">
-           <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-             This is to certify that
-           </p>
-           
-           <div className="mb-6">
-             {isEditing ? (
-               <input
-                 type="text"
-                 value={editableData.recipientName}
-                 onChange={(e) => setEditableData({...editableData, recipientName: e.target.value})}
-                 className="text-5xl font-bold text-gray-800 leading-tight bg-transparent border-b-2 border-blue-300 text-center w-full max-w-2xl mx-auto focus:outline-none focus:border-blue-500 px-4 py-2"
-                 placeholder="Recipient Name"
-               />
-             ) : (
-               <h2 className="text-5xl font-bold text-gray-800 leading-tight">
-                 {editableData.recipientName}
-               </h2>
-             )}
-           </div>
-           
-           <p className="text-lg text-gray-600 mb-4">
-             has successfully completed the course
-           </p>
-           
-           <div className="mb-8">
-             {isEditing ? (
-               <input
-                 type="text"
-                 value={editableData.courseName}
-                 onChange={(e) => setEditableData({...editableData, courseName: e.target.value})}
-                 className="text-3xl font-semibold text-blue-700 leading-relaxed bg-transparent border-b-2 border-blue-300 text-center w-full max-w-xl mx-auto focus:outline-none focus:border-blue-500 px-4 py-2"
-                 placeholder="Course Name"
-               />
-             ) : (
-               <h3 className="text-3xl font-semibold text-blue-700 leading-relaxed">
-                 {editableData.courseName}
-               </h3>
-             )}
-           </div>
-           
-           <div className="flex justify-center items-center mb-8">
-             <Star className="text-yellow-500 w-6 h-6 mr-2" />
-             {isEditing ? (
-               <div className="flex items-center space-x-2">
-                 <span className="text-lg text-gray-600">Completed on</span>
-                 <input
-                   type="date"
-                   value={editableData.completionDate}
-                   onChange={(e) => setEditableData({...editableData, completionDate: e.target.value})}
-                   className="text-lg text-gray-600 bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500 px-2 py-1"
-                 />
-               </div>
-             ) : (
-               <p className="text-lg text-gray-600">
-                 Completed on {editableData.completionDate}
-               </p>
-             )}
-             <Star className="text-yellow-500 w-6 h-6 ml-2" />
-           </div>
-         </div>
-
-                 {/* Footer */}
-         <div className="flex justify-between items-end mt-12">
-           <div className="text-center flex-1">
-             <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto"></div>
-             {isEditing ? (
-               <input
-                 type="text"
-                 value={editableData.instructorName}
-                 onChange={(e) => setEditableData({...editableData, instructorName: e.target.value})}
-                 className="text-sm text-gray-600 font-medium bg-transparent border-b border-gray-300 text-center w-48 focus:outline-none focus:border-blue-500 mx-auto block"
-                 placeholder="Instructor Name"
-               />
-             ) : (
-               <p className="text-sm text-gray-600 font-medium">{editableData.instructorName}</p>
-             )}
-             <p className="text-xs text-gray-500 mt-1">Course Instructor</p>
-           </div>
-           
-           <div className="text-center flex-1">
-             <div className="mb-4">
-               <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                 <Award className="text-white w-10 h-10" />
-               </div>
-             </div>
-             {isEditing ? (
-               <input
-                 type="text"
-                 value={editableData.organizationName}
-                 onChange={(e) => setEditableData({...editableData, organizationName: e.target.value})}
-                 className="text-sm font-bold text-gray-700 bg-transparent border-b border-gray-300 text-center w-full max-w-xs focus:outline-none focus:border-blue-500 mx-auto block"
-                 placeholder="Organization"
-               />
-             ) : (
-               <p className="text-sm font-bold text-gray-700">{editableData.organizationName}</p>
-             )}
-             <p className="text-xs text-gray-500 mt-1">Official Seal</p>
-           </div>
-           
-           <div className="text-center flex-1">
-             <div className="w-48 border-b-2 border-gray-400 mb-2 mx-auto"></div>
-             <p className="text-sm text-gray-600 font-medium">Director</p>
-             {isEditing ? (
-               <input
-                 type="text"
-                 value={editableData.organizationName}
-                 onChange={(e) => setEditableData({...editableData, organizationName: e.target.value})}
-                 className="text-xs text-gray-500 bg-transparent border-b border-gray-300 text-center w-48 focus:outline-none focus:border-blue-500 mx-auto block mt-1"
-                 placeholder="Organization"
-               />
-             ) : (
-               <p className="text-xs text-gray-500 mt-1">{editableData.organizationName}</p>
-             )}
-           </div>
-         </div>
-
-        {/* Certificate ID */}
-        <div className="mt-8 text-center">
-          {isEditing ? (
-            <div className="flex justify-center items-center space-x-2">
-              <span className="text-xs text-gray-500">Certificate ID:</span>
-              <input
-                type="text"
-                value={editableData.certificateId}
-                onChange={(e) => setEditableData({...editableData, certificateId: e.target.value})}
-                className="text-xs text-gray-500 bg-transparent border-b border-gray-300 text-center w-40 focus:outline-none focus:border-blue-500 px-2 py-1"
-                placeholder="Certificate ID"
-              />
-            </div>
-          ) : (
-            <p className="text-xs text-gray-500">Certificate ID: {editableData.certificateId}</p>
-          )}
-        </div>
-
-        {/* Decorative Elements */}
-            <div className="absolute top-1/2 left-4 transform -translate-y-1/2 opacity-5">
-              <Award className="w-32 h-32 text-blue-600" />
-            </div>
-            <div className="absolute top-1/2 right-4 transform -translate-y-1/2 opacity-5">
-              <Award className="w-32 h-32 text-blue-600" />
-            </div>
-        </div>
         </div>
       </div>
     </Layout>
   );
 };
 
-export default Certificate;
+export default Certificates;

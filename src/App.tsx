@@ -13,6 +13,7 @@ import Fees from './pages/Students/Fees';
 import Revenue from './pages/Students/Revenue';
 import Certificates from './pages/Certificates';
 import Enrolment from './pages/Enrolment';
+import Marksheet from './pages/Marksheet';
 
 function App() {
   return (
@@ -31,7 +32,8 @@ function App() {
           <Route path="fees" element={<Fees />} />
           <Route path="revenue" element={<Revenue />} />
         </Route>
-        <Route path="/certificates" element={<Certificates />} />
+        <Route path="/certificate" element={<Certificates />} />
+        <Route path="/marksheet" element={<Marksheet />} />
         <Route path="/enrolment" element={<Enrolment />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>

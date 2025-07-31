@@ -12,7 +12,8 @@ import {
   GraduationCap,
   DollarSign,
   Award,
-  ClipboardList
+  ClipboardList,
+  FileText // Added for Marksheet
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,10 +22,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   const [studentsOpen, setStudentsOpen] = useState(false);
+  const [academicsOpen, setAcademicsOpen] = useState(false); // State for new dropdown
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
   const isStudentsActive = () => location.pathname.startsWith('/students');
+  const isAcademicsActive = () => location.pathname.startsWith('/certificate') || location.pathname.startsWith('/marksheet');
 
   const handleLinkClick = () => {
     if (onCloseMobile) {
@@ -66,6 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             Society
           </Link>
 
+          {/* Students Dropdown */}
           <div>
             <button
               onClick={() => setStudentsOpen(!studentsOpen)}
@@ -88,101 +92,62 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
 
             {studentsOpen && (
               <div className="ml-4 mt-1 space-y-1">
-                <Link
-                  to="/students/all"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/all' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Get All Students
-                </Link>
-                
-                <Link
-                  to="/students/kyc"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/kyc' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <UserCheck className="w-4 h-4 mr-2" />
-                  KYC Request
-                </Link>
-                
-                <Link
-                  to="/students/batch"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/batch' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Batch
-                </Link>
-                
-                <Link
-                  to="/students/courses"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/courses' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Courses
-                </Link>
-                
-                <Link
-                  to="/students/fees"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/fees' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Fees
-                </Link>
-                
-                <Link
-                  to="/students/revenue"
-                  onClick={handleLinkClick}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/revenue' 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  My Revenue
-                </Link>
+                {/* Student Links */}
               </div>
             )}
           </div>
 
-          {/* Certificate Section */}
-          <Link
-            to="/certificates"
-            onClick={handleLinkClick}
-            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-              isActive('/certificates')
-                ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {/* Use Award icon for certificate */}
-            <Award className="w-5 h-5 mr-3" />
-            Certificates
-          </Link>
+          {/* Academics Dropdown (Certificate & Marksheet) */}
+          <div>
+            <button
+              onClick={() => setAcademicsOpen(!academicsOpen)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                isAcademicsActive() 
+                  ? 'bg-blue-50 text-blue-600' 
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center">
+                <Award className="w-5 h-5 mr-3" />
+                Certificates
+              </div>
+              {academicsOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+
+            {academicsOpen && (
+              <div className="ml-4 mt-1 space-y-1">
+                <Link
+                  to="/certificate"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/certificate' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Certificate
+                </Link>
+                
+                <Link
+                  to="/marksheet"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/marksheet' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Marksheet
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Enrolment Section */}
           <Link
@@ -194,7 +159,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            {/* Use ClipboardList icon for enrolment */}
             <ClipboardList className="w-5 h-5 mr-3" />
             Enrolment
           </Link>
