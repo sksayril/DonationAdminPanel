@@ -92,7 +92,78 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
 
             {studentsOpen && (
               <div className="ml-4 mt-1 space-y-1">
-                {/* Student Links */}
+                <Link
+                  to="/students/all"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/all' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  All Students
+                </Link>
+                <Link
+                  to="/students/kyc"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/kyc' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  KYC Request
+                </Link>
+                <Link
+                  to="/students/batch"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/batch' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Batch
+                </Link>
+                <Link
+                  to="/students/courses"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/courses' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Courses
+                </Link>
+                <Link
+                  to="/students/fees"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/fees' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Fees
+                </Link>
+                <Link
+                  to="/students/revenue"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students/revenue' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Revenue
+                </Link>
               </div>
             )}
           </div>
