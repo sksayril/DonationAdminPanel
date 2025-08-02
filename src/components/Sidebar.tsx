@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   LayoutDashboard, 
   Users, 
@@ -13,7 +14,8 @@ import {
   DollarSign,
   Award,
   ClipboardList,
-  FileText // Added for Marksheet
+  FileText, // Added for Marksheet
+  LogOut
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,12 +26,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [academicsOpen, setAcademicsOpen] = useState(false); // State for new dropdown
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, adminData } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
-  const isStudentsActive = () => location.pathname.startsWith('/students');
   const isAcademicsActive = () => location.pathname.startsWith('/certificate') || location.pathname.startsWith('/marksheet');
 
   const handleLinkClick = () => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
     if (onCloseMobile) {
       onCloseMobile();
     }
@@ -39,6 +50,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     <div className="w-full h-full flex flex-col bg-white shadow-lg">
       <div className="p-6 border-b">
         <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
+        {adminData && (
+          <div className="mt-2 text-sm text-gray-600">
+            Welcome, {adminData.firstName} {adminData.lastName}
+          </div>
+        )}
       </div>
       
       <nav className="mt-4 flex-1 overflow-y-auto">
@@ -69,19 +85,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             Society
           </Link>
 
-          {/* Students Dropdown */}
+          {/* Students Management Dropdown */}
           <div>
             <button
               onClick={() => setStudentsOpen(!studentsOpen)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                isStudentsActive() 
+                location.pathname.startsWith('/students-management') 
                   ? 'bg-blue-50 text-blue-600' 
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               <div className="flex items-center">
                 <Users className="w-5 h-5 mr-3" />
-                Students
+                Students Management
               </div>
               {studentsOpen ? (
                 <ChevronDown className="w-4 h-4" />
@@ -93,10 +109,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             {studentsOpen && (
               <div className="ml-4 mt-1 space-y-1">
                 <Link
-                  to="/students/all"
+                  to="/students"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/all' 
+                    location.pathname === '/students' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Students
+                </Link>
+                <Link
+                  to="/students-management/all"
+                  onClick={handleLinkClick}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                    location.pathname === '/students-management/all' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -105,10 +133,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   All Students
                 </Link>
                 <Link
-                  to="/students/kyc"
+                  to="/students-management/kyc"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/kyc' 
+                    location.pathname === '/students-management/kyc' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -117,10 +145,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   KYC Request
                 </Link>
                 <Link
-                  to="/students/batch"
+                  to="/students-management/batch"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/batch' 
+                    location.pathname === '/students-management/batch' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -129,10 +157,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   Batch
                 </Link>
                 <Link
-                  to="/students/courses"
+                  to="/students-management/courses"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/courses' 
+                    location.pathname === '/students-management/courses' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -141,10 +169,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   Courses
                 </Link>
                 <Link
-                  to="/students/fees"
+                  to="/students-management/fees"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/fees' 
+                    location.pathname === '/students-management/fees' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -153,10 +181,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   Fees
                 </Link>
                 <Link
-                  to="/students/revenue"
+                  to="/students-management/revenue"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
-                    location.pathname === '/students/revenue' 
+                    location.pathname === '/students-management/revenue' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
@@ -235,6 +263,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           </Link>
         </div>
       </nav>
+
+      {/* Logout button at the bottom */}
+      <div className="p-4 border-t">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          Logout
+        </button>
+      </div>
     </div>
   );
 };
