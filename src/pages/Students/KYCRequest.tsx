@@ -1,153 +1,231 @@
-import React from 'react';
-import { Eye, Check, X, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import apiService from '../../services/apiService';
+
+interface Student {
+  _id: string;
+  firstName: string;
+  kycStatus: string;
+}
 
 const KYCRequest: React.FC = () => {
-  const kycRequests = [
-    { id: 1, name: 'Alex Turner', email: 'alex@example.com', submitted: '2024-01-15', status: 'Pending', documents: 3 },
-    { id: 2, name: 'Emma Watson', email: 'emma@example.com', submitted: '2024-01-14', status: 'Under Review', documents: 4 },
-    { id: 3, name: 'David Miller', email: 'david@example.com', submitted: '2024-01-13', status: 'Approved', documents: 3 },
-    { id: 4, name: 'Lisa Johnson', email: 'lisa@example.com', submitted: '2024-01-12', status: 'Rejected', documents: 2 },
-  ];
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Under Review': return 'bg-blue-100 text-blue-800';
-      case 'Approved': return 'bg-green-100 text-green-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleKYCApprove = async (studentId: string) => {
+    try {
+      const response = await apiService.put(`/students/${studentId}/kyc`, { status: 'approved' });
+      if (response.success) {
+        // Update the student's KYC status in the local state
+        setStudents(prevStudents => 
+          prevStudents.map(student => 
+            student._id === studentId 
+              ? { ...student, kycStatus: 'approved' }
+              : student
+          )
+        );
+      } else {
+        setError('Failed to approve KYC');
+      }
+    } catch (err) {
+      console.error('KYC approval error:', err);
+      setError('An error occurred while approving KYC');
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Pending': return <Clock className="w-4 h-4" />;
-      case 'Under Review': return <Eye className="w-4 h-4" />;
-      case 'Approved': return <Check className="w-4 h-4" />;
-      case 'Rejected': return <X className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
+  const handleKYCDecline = async (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setShowDeclineModal(true);
+  };
+
+  const handleDeclineSubmit = async () => {
+    if (!selectedStudentId || !declineReason.trim()) {
+      setError('Please provide a reason for declining KYC');
+      return;
+    }
+
+    try {
+      const response = await apiService.put(`/students/${selectedStudentId}/reject-kyc`, { 
+        reason: declineReason.trim()
+      });
+      
+      if (response.success) {
+        // Update the student's KYC status in the local state
+        setStudents(prevStudents => 
+          prevStudents.map(student => 
+            student._id === selectedStudentId 
+              ? { ...student, kycStatus: 'declined' }
+              : student
+          )
+        );
+        setShowDeclineModal(false);
+        setSelectedStudentId(null);
+        setDeclineReason('');
+        // Show success message from API response
+        setSuccessMessage(response.data.message || 'KYC rejected successfully');
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        setError(response.data.message || 'Failed to decline KYC');
+      }
+    } catch (err) {
+      console.error('KYC decline error:', err);
+      setError('An error occurred while declining KYC');
     }
   };
+
+  const handleCloseModal = () => {
+    setShowDeclineModal(false);
+    setSelectedStudentId(null);
+    setDeclineReason('');
+    setError(null);
+  };
+
+  useEffect(() => {
+    const fetchKYCRequests = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiService.get('/students');
+
+        // Log the full response for debugging
+        console.log('API Response:', response);
+
+        if (response.success && response.data.data && response.data.data.students) {
+          const { students } = response.data.data; // Extract students from the response
+          console.log('Students:', students);
+          setStudents(Array.isArray(students) ? students : []);
+        } else {
+          setStudents([]);
+          setError(response.error || 'Failed to fetch KYC requests');
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setStudents([]);
+        setError('An error occurred while fetching KYC requests');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchKYCRequests();
+  }, []);
+
+  // if (isLoading) return <div>Loading...</div>;
+  // if (error) return <div>Error: {error}</div>;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">KYC Requests</h2>
-        <div className="flex space-x-2">
-          <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">
-            5 Pending Review
-          </span>
+    <div className="p-6 bg-white shadow-md rounded-lg">
+      <h1 className="text-2xl font-bold text-gray-800">KYC Requests</h1>
+      
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {successMessage}
+          </div>
         </div>
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-lg shadow-sm border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {kycRequests.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{request.name}</div>
-                      <div className="text-sm text-gray-500">{request.email}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.submitted}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {request.documents} files
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex items-center gap-1 text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                      {getStatusIcon(request.status)}
-                      {request.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 flex items-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        Review
-                      </button>
-                      {request.status === 'Pending' || request.status === 'Under Review' ? (
-                        <>
-                          <button className="text-green-600 hover:text-green-900 flex items-center gap-1">
-                            <Check className="w-4 h-4" />
-                            Approve
-                          </button>
-                          <button className="text-red-600 hover:text-red-900 flex items-center gap-1">
-                            <X className="w-4 h-4" />
-                            Reject
-                          </button>
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-4">
-        {kycRequests.map((request) => (
-          <div key={request.id} className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-medium text-gray-900">{request.name}</h3>
-                <p className="text-xs text-gray-500">{request.email}</p>
+      )}
+      {students.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">No KYC requests found</div>
+      ) : (
+        <div className="space-y-4">
+          {students.map((student) => (
+            <div key={student._id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow flex items-center justify-between">
+              <div className="flex-grow">
+                <h2 className="text-lg font-semibold text-gray-800">{student.firstName}</h2>
+                <p className="text-sm text-gray-600">Student ID: {student._id}</p>
               </div>
-              <span className={`px-2 py-1 inline-flex items-center gap-1 text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                {getStatusIcon(request.status)}
-                {request.status}
-              </span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-              <div>
-                <span className="block text-gray-500">Submitted</span>
-                <span className="font-medium">{request.submitted}</span>
-              </div>
-              <div>
-                <span className="block text-gray-500">Documents</span>
-                <span className="font-medium">{request.documents} files</span>
+              <div className="flex items-center space-x-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${student.kycStatus === 'approved' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                  {student.kycStatus.charAt(0).toUpperCase() + student.kycStatus.slice(1)}
+                </span>
+                {student.kycStatus === 'approved' ? (
+                  <button
+                    onClick={() => handleKYCDecline(student._id)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+                  >
+                    Decline KYC
+                  </button>
+                ) : student.kycStatus === 'pending' ? (
+                  <button
+                    onClick={() => handleKYCApprove(student._id)}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+                  >
+                    Approve KYC
+                  </button>
+                ) : student.kycStatus === 'declined' ? (
+                  <button
+                    onClick={() => handleKYCApprove(student._id)}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+                  >
+                    Approve KYC
+                  </button>
+                ) : null}
               </div>
             </div>
-            
-            <div className="flex flex-wrap gap-2 pt-3 border-t">
-              <button className="text-blue-600 hover:text-blue-900 flex items-center gap-1 text-sm">
-                <Eye className="w-4 h-4" />
-                Review
+          ))}
+        </div>
+      )}
+
+      {/* Decline KYC Modal */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Decline KYC Request</h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                ×
               </button>
-              {request.status === 'Pending' || request.status === 'Under Review' ? (
-                <>
-                  <button className="text-green-600 hover:text-green-900 flex items-center gap-1 text-sm">
-                    <Check className="w-4 h-4" />
-                    Approve
-                  </button>
-                  <button className="text-red-600 hover:text-red-900 flex items-center gap-1 text-sm">
-                    <X className="w-4 h-4" />
-                    Reject
-                  </button>
-                </>
-              ) : null}
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="declineReason" className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for declining KYC
+              </label>
+              <textarea
+                id="declineReason"
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                placeholder="Please provide a reason for declining this KYC request..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeclineSubmit}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+              >
+                Decline KYC
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

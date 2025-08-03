@@ -1,6 +1,7 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'https://7cvccltb-3100.inc1.devtunnels.ms/api/admin';
+const BASE_URL = 'http://localhost:3100/api/admin';
+
 
 // API endpoints configuration
 const API_ENDPOINTS = {
@@ -259,6 +260,16 @@ class ApiService {
   // Get all students
   async getAllStudents(): Promise<ApiResponse<any>> {
     return this.get('/students');
+  }
+
+  // Get student by ID
+  async getStudentById(studentId: string): Promise<ApiResponse<any>> {
+    return this.get(`/students/${studentId}`);
+  }
+
+  // Reset student password
+  async resetStudentPassword(studentId: string, newPassword: string): Promise<ApiResponse<any>> {
+    return this.put(`/students/${studentId}/reset-password`, { newPassword });
   }
 
   // Check if user is authenticated
