@@ -1,292 +1,309 @@
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
-import { Upload } from 'lucide-react';
+import { Plus, User, BookOpen, Calendar, DollarSign, CreditCard } from 'lucide-react';
+
+interface EnrollStudentForm {
+  studentId: string;
+  courseId: string;
+  batchId: string;
+  paymentAmount: number;
+  paymentMethod: string;
+}
 
 const Enrolment: React.FC = () => {
-  // State for uploaded images
-  const [studentPhoto, setStudentPhoto] = useState<string | null>(null);
-  const [studentSignature, setStudentSignature] = useState<string | null>(null);
-  const [parentSignature, setParentSignature] = useState<string | null>(null);
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [responseMessage, setResponseMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
-  // Handle image uploads
-  const handleImageUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    setImageFunction: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageFunction(reader.result as string);
+  const [formData, setFormData] = useState<EnrollStudentForm>({
+    studentId: '',
+    courseId: '',
+    batchId: '',
+    paymentAmount: 0,
+    paymentMethod: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'paymentAmount' ? parseInt(value) || 0 : value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setResponseMessage(null);
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
       };
-      reader.readAsDataURL(file);
+
+      console.log('Submitting enrollment data:', formData);
+
+      const response = await fetch('http://localhost:3100/api/admin/enroll-student', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(formData)
+      });
+
+      console.log('Response status:', response.status);
+
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (response.ok) {
+        setResponseMessage({ 
+          type: 'success', 
+          text: data.message || 'Student enrolled successfully!' 
+        });
+        setFormData({
+          studentId: '',
+          courseId: '',
+          batchId: '',
+          paymentAmount: 0,
+          paymentMethod: ''
+        });
+        // Close modal after a short delay to show success message
+        setTimeout(() => {
+          setShowEnrollModal(false);
+          setResponseMessage(null);
+        }, 2000);
+      } else {
+        setResponseMessage({ 
+          type: 'error', 
+          text: data.message || data.error || 'Failed to enroll student' 
+        });
+      }
+    } catch (error) {
+      console.error('Error enrolling student:', error);
+      setResponseMessage({ 
+        type: 'error', 
+        text: 'Network error: Unable to connect to the server. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would collect form data and send it to your backend
-    alert('Form submitted successfully!');
-    // You can replace the alert with your actual submission logic
+
+  const handleCloseModal = () => {
+    setShowEnrollModal(false);
+    setResponseMessage(null);
   };
+
+  const testApiConnection = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setResponseMessage({ 
+          type: 'error', 
+          text: 'No authentication token found. Please login first.' 
+        });
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const testData = {
+        studentId: "test_student_123",
+        courseId: "test_course_456", 
+        batchId: "test_batch_789",
+        paymentAmount: 3999,
+        paymentMethod: "cash"
+      };
+
+      console.log('Testing API with data:', testData);
+
+      const response = await fetch('http://localhost:3100/api/admin/enroll-student', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(testData)
+      });
+
+      const data = await response.json();
+      console.log('Test API response:', data);
+
+      if (response.ok) {
+        setResponseMessage({ 
+          type: 'success', 
+          text: 'API test successful! Server is responding correctly.' 
+        });
+      } else {
+        setResponseMessage({ 
+          type: 'error', 
+          text: `API test failed: ${data.message || 'Unknown error'}` 
+        });
+      }
+    } catch (error) {
+      console.error('API test error:', error);
+      setResponseMessage({ 
+        type: 'error', 
+        text: 'API test failed: Network error or server not running.' 
+      });
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8 border print:border-0 print:shadow-none print:p-0 print:bg-white">
-        {/* Institution Header */}
-        <div className="text-center mb-8 border-b-2 border-gray-800 pb-4">
-          <h1 className="text-3xl font-bold text-gray-800 tracking-wide">
-            M.H ACADEMY
-          </h1>
-          <p className="text-sm text-gray-600 mt-2">ENROLLMENT FORM</p>
-        </div>
-
-        {/* Institution Details */}
-        <div className="space-y-6 mb-8">
-          <div className="flex items-start">
-            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Office Address:</span>
-            <div className="flex-1 border-b border-gray-400 pb-1">
-              <input 
-                type="text" 
-                className="w-full bg-transparent focus:outline-none text-gray-700"
-                placeholder="28, Pocket 1st, Sector 24, Rohini, New Delhi-110085"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Mobile No.:</span>
-            <div className="flex-1 border-b border-gray-400 pb-1">
-              <input 
-                type="text" 
-                className="w-full bg-transparent focus:outline-none text-gray-700"
-                placeholder="9958610292"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <span className="text-lg font-medium text-gray-700 w-32 inline-block">Email id:</span>
-            <div className="flex-1 border-b border-gray-400 pb-1">
-              <input 
-                type="email" 
-                className="w-full bg-transparent focus:outline-none text-gray-700"
-                placeholder="mhacademy.online@gmail.com & Sonu21sharma1962@gmail.com"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Form Start */}
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Main Form Content */}
-          <div className="space-y-6">
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Student Full Name:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700 font-medium"
-                  placeholder="Enter student name"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Father's Name:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="Enter father's name"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Date of Birth:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="date" 
-                  className="bg-transparent focus:outline-none text-gray-700"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-20 inline-block">Gender:</span>
-              <div className="w-32 border-b border-gray-400 pb-1 mr-4">
-                <select className="bg-transparent focus:outline-none text-gray-700 w-full">
-                  <option value="">Select</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <span className="text-lg font-medium text-gray-700 w-20 inline-block ml-4">Age:</span>
-              <div className="w-20 border-b border-gray-400 pb-1">
-                <input 
-                  type="number" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  min="1"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Complete Address:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="Enter complete address"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Mobile Number:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="Enter mobile number"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Course/Program:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="Enter course/program name"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Academic Session:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="e.g., 2024-2025"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <span className="text-lg font-medium text-gray-700 w-40 inline-block">Enrollment Fee Rs.:</span>
-              <div className="w-32 border-b border-gray-400 pb-1 mr-4">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="5000/-"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <span className="text-lg font-medium text-gray-700 w-20 inline-block">Remarks:</span>
-              <div className="flex-1 border-b border-gray-400 pb-1">
-                <input 
-                  type="text" 
-                  className="w-full bg-transparent focus:outline-none text-gray-700"
-                  placeholder="Any additional remarks"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Declaration Section */}
-          <section className="mt-8 print:mt-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Declaration</h3>
-            <p className="text-sm mb-4">I hereby declare that the information provided above is true to the best of my knowledge and belief. I shall abide by the rules and regulations of the institution.</p>
-            <div className="flex flex-col md:flex-row justify-between mt-6 print:mt-2">
-              <div className="flex flex-col items-center">
-                <span className="block text-sm font-medium">Student Signature</span>
-                <div className="w-40 h-24 border border-gray-400 mt-2 relative flex items-center justify-center">
-                  {studentSignature ? (
-                    <img src={studentSignature} alt="Student Signature" className="w-full h-full object-contain" />
-                  ) : (
-                    <div className="w-full border-b border-gray-400 absolute bottom-6"></div>
-                  )}
-                  <label className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white text-xs flex items-center justify-center py-1 cursor-pointer hover:bg-opacity-70">
-                    <Upload size={12} className="mr-1" />
-                    Upload
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={(e) => handleImageUpload(e, setStudentSignature)} 
-                    />
-                  </label>
-                </div>
-               </div>
-              <div className="flex flex-col items-center mt-6 md:mt-0">
-                <span className="block text-sm font-medium">Parent/Guardian Signature</span>
-                <div className="w-40 h-24 border border-gray-400 mt-2 relative flex items-center justify-center">
-                  {parentSignature ? (
-                    <img src={parentSignature} alt="Parent Signature" className="w-full h-full object-contain" />
-                  ) : (
-                    <div className="w-full border-b border-gray-400 absolute bottom-6"></div>
-                  )}
-                  <label className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white text-xs flex items-center justify-center py-1 cursor-pointer hover:bg-opacity-70">
-                    <Upload size={12} className="mr-1" />
-                    Upload
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={(e) => handleImageUpload(e, setParentSignature)} 
-                    />
-                  </label>
-                </div>
-                </div>
-            </div>
-          </section>
-
-          {/* For Office Use Only */}
-          <section className="mt-8 print:mt-4 border-t pt-4 print:border-t print:pt-2">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">For Office Use Only</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm font-medium">Admission No.</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Enrollment Date</label>
-                <input type="date" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Class/Course Allotted</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Roll No.</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium">Verified By</label>
-                <input type="text" className="form-input w-full border rounded p-2" />
-              </div>
-            </div>
-          </section>
-          
-          {/* Submit Button */}
-          <div className="mt-8 flex justify-center">
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4 sm:mb-0">Student Enrollment</h2>
+          <div className="flex gap-2">
             <button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-md shadow-sm transition duration-150 ease-in-out flex items-center"
+              onClick={testApiConnection}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
             >
-              Submit Enrollment Form
+              Test API
+            </button>
+            <button 
+              onClick={() => setShowEnrollModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Enroll Student
             </button>
           </div>
-        </form>
+        </div>
+
+        {/* Enrollment Modal */}
+        {showEnrollModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b">
+                <h3 className="text-xl font-semibold text-gray-800">Enroll Student</h3>
+              </div>
+
+              {responseMessage && (
+                <div className={`p-4 m-4 rounded ${responseMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {responseMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Student ID *</label>
+                    <input
+                      type="text"
+                      name="studentId"
+                      value={formData.studentId}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter student ID"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Course ID *</label>
+                    <input
+                      type="text"
+                      name="courseId"
+                      value={formData.courseId}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter course ID"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Batch ID *</label>
+                    <input
+                      type="text"
+                      name="batchId"
+                      value={formData.batchId}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter batch ID"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Payment Amount (Rs.) *
+                    </label>
+                    <input
+                      type="number"
+                      name="paymentAmount"
+                      value={formData.paymentAmount}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="3999"
+                      min="0"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Payment Method *
+                    </label>
+                    <select
+                      name="paymentMethod"
+                      value={formData.paymentMethod}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Select Payment Method</option>
+                      <option value="cash">Cash</option>
+                      <option value="card">Card</option>
+                      <option value="upi">UPI</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="cheque">Cheque</option>
+                      <option value="online">Online Payment</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6 border-t">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Enrolling...' : 'Enroll Student'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+          <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <User className="w-12 h-12 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Enrolled</h3>
+          <p className="text-gray-500 mb-6">Start by enrolling your first student using the button above.</p>
+          <button 
+            onClick={() => setShowEnrollModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <Plus className="w-4 h-4" />
+            Enroll Student
+          </button>
+        </div>
       </div>
     </Layout>
   );
