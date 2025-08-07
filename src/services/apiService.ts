@@ -1,6 +1,7 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'http://localhost:3100/api/admin';
+const BASE_URL = 'https://t0nzmsdd-3100.inc1.devtunnels.ms/api/admin';
+
 
 
 // API endpoints configuration
@@ -25,6 +26,15 @@ const API_ENDPOINTS = {
     update: '/api/students/:id',
     delete: '/api/students/:id',
     search: '/api/students/search',
+  },
+  
+  // Course management endpoints
+  courses: {
+    getAll: '/courses',
+    getById: '/courses/:id',
+    create: '/courses',
+    update: '/courses/:id',
+    delete: '/courses/:id',
   },
   
   // Dashboard endpoints
@@ -270,6 +280,41 @@ class ApiService {
   // Reset student password
   async resetStudentPassword(studentId: string, newPassword: string): Promise<ApiResponse<any>> {
     return this.put(`/students/${studentId}/reset-password`, { newPassword });
+  }
+
+  // Course management methods
+  async getAllCourses(params?: {
+    status?: string;
+    courseType?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.courseType) queryParams.append('courseType', params.courseType);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const endpoint = `/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.get(endpoint);
+  }
+
+  async getCourseById(courseId: string): Promise<ApiResponse<any>> {
+    return this.get(`/courses/${courseId}`);
+  }
+
+  async createCourse(courseData: FormData): Promise<ApiResponse<any>> {
+    return this.post('/courses', courseData);
+  }
+
+  async updateCourse(courseId: string, courseData: any): Promise<ApiResponse<any>> {
+    return this.put(`/courses/${courseId}`, courseData);
+  }
+
+  async deleteCourse(courseId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/courses/${courseId}`);
   }
 
   // Check if user is authenticated

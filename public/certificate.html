@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Course Completion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .certificate {
+            width: 210mm;
+            height: 297mm;
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 50%, #e8f4fd 100%);
+            border: 15px solid transparent;
+            border-image: repeating-linear-gradient(45deg, #87ceeb 0, #87ceeb 8px, white 8px, white 16px) 15;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .border-decoration {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 3px solid #87ceeb;
+            border-radius: 10px;
+        }
+        
+        .border-decoration::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background: repeating-linear-gradient(
+                0deg,
+                #87ceeb 0px,
+                #87ceeb 8px,
+                white 8px,
+                white 16px
+            );
+            border-radius: 15px;
+            z-index: -1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .foundation-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffa500;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .ministry-info {
+            font-size: 12px;
+            color: #e91e63;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .reg-info {
+            font-size: 10px;
+            color: #e91e63;
+            margin-bottom: 20px;
+        }
+        
+        .certificate-title {
+            font-size: 24px;
+            color: #e91e63;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+        
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #333;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSJ3aGl0ZSIvPgo8cmVjdCB4PSI1IiB5PSI1IiB3aWR0aD0iMTUiIGhlaWdodD0iMTUiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjYwIiB5PSI1IiB3aWR0aD0iMTUiIGhlaWdodD0iMTUiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjUiIHk9IjYwIiB3aWR0aD0iMTUiIGhlaWdodD0iMTUiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI1IiB5PSIyNSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4K') no-repeat center;
+            background-size: contain;
+        }
+        
+        .photo {
+            width: 80px;
+            height: 100px;
+            border: 2px solid #333;
+            background: linear-gradient(45deg, #ddd 25%, transparent 25%), 
+                        linear-gradient(-45deg, #ddd 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #ddd 75%), 
+                        linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+            position: relative;
+        }
+        
+        .photo::after {
+            content: 'PHOTO';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 10px;
+            background: radial-gradient(circle, #ffa500 30%, #e91e63 70%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .logo::after {
+            content: 'PD';
+            display: block;
+        }
+        
+        .logo:has(img)::after {
+            display: none;
+        }
+        
+        .pdetf-text {
+            font-size: 14px;
+            color: #e91e63;
+            font-weight: bold;
+        }
+        
+        .certificate-number {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .main-content {
+            text-align: center;
+            line-height: 1.8;
+            margin: 40px 0;
+            font-size: 16px;
+        }
+        
+        .name-field {
+            color: #333;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 0 5px;
+        }
+        
+        .course-name {
+            color: #333;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 0 5px;
+        }
+        
+        .grade {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .date {
+            color: #333;
+            text-decoration: underline;
+            margin: 0 5px;
+        }
+        
+        .enrollment {
+            color: #333;
+            margin: 0 5px;
+        }
+        
+        .footer-message {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .success-message {
+            color: #4a90e2;
+            font-style: italic;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 50px;
+        }
+        
+        .government-logos {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .logo-placeholder {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ffa500, #e91e63);
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        .ministry-text {
+            font-size: 10px;
+            color: #333;
+            font-weight: bold;
+            max-width: 80px;
+            line-height: 1.2;
+        }
+        
+        .seal-section {
+            text-align: center;
+        }
+        
+        .seal-text {
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .decorative-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .decorative-elements::before,
+        .decorative-elements::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(135,206,235,0.1) 0%, transparent 70%);
+        }
+        
+        .decorative-elements::before {
+            top: 20%;
+            left: 10%;
+        }
+        
+        .decorative-elements::after {
+            bottom: 20%;
+            right: 10%;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="border-decoration"></div>
+        <div class="decorative-elements"></div>
+        
+        <div class="header">
+            <h1 class="foundation-name">Phoolmati Devi Educational & Training Foundation</h1>
+            <div class="ministry-info">MINISTRY OF CORPORATE AFFAIRS (GOVT. OF INDIA)</div>
+            <div class="reg-info">REGD. ADDRESS: G-36,A15,KH NO. 22/18 & 23 LAXMI PARK,NANGLOI NEW DELHI 110041<br>
+            GOVT. REG.U85500DL2024NPL432240</div>
+            <h2 class="certificate-title">CERTIFICATE OF COURSE COMPLETION</h2>
+        </div>
+        
+        <div class="top-section">
+            <div class="qr-code"></div>
+            <div class="photo"></div>
+        </div>
+        
+        <div class="logo-section">
+            <div class="logo">
+                <!-- Replace the src with your image URL -->
+                <!-- <img src="your-logo-image.png" alt="PDETF Logo"> -->
+            </div>
+            <div class="pdetf-text">PDETF</div>
+            <div class="certificate-number">Certificate no. PD117</div>
+        </div>
+        
+        <div class="main-content">
+            <p>This is certified that Mr/Mrs <span class="name-field">MANOJ</span> Father name <span class="name-field">Mr. JAI SINGH</span> Mother name Mrs <span class="name-field">KELA</span>. Has successfully completed the course</p>
+            
+            <p><strong>CERTIFICATE IN INFORMATION TECHNOLOGY</strong> from Our foundation /institute. duration of course is 12 Months. Grade <span class="grade">A</span> Certificate issued</p>
+            
+            <p>year <span class="date">03/04/2025</span> And Enroll No. <span class="enrollment">Petj027</span>.</p>
+        </div>
+        
+        <div class="footer-message">
+            <p>We are issuing a training certificate by our foundation/institute.</p>
+            <p class="success-message">I wish you all the success, happiness and Bright Future</p>
+        </div>
+        
+        <div class="bottom-section">
+            <div class="government-logos">
+                <div class="logo-placeholder">DIGITAL INDIA</div>
+                <div class="logo-placeholder">MCA</div>
+                <div class="ministry-text">MINISTRY OF CORPORATE AFFAIRS</div>
+            </div>
+            
+            <div class="seal-section">
+                <div class="seal-text">SEAL & SIGN.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

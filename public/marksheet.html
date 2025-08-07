@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Course Completion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .certificate {
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+            border: 15px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            padding: 30px;
+        }
+        
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            background: repeating-linear-gradient(
+                0deg,
+                #4a90e2 0px,
+                #4a90e2 8px,
+                #87ceeb 8px,
+                #87ceeb 16px
+            );
+            z-index: -1;
+            border-radius: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .foundation-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff8c00;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
+            transform: rotate(-2deg);
+            display: inline-block;
+        }
+        
+        .ministry-info {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+        
+        .certificate-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d63384;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .left-section {
+            flex: 1;
+        }
+        
+        .photo-placeholder {
+            width: 120px;
+            height: 140px;
+            background: #ddd;
+            border: 3px solid #666;
+            margin-bottom: 15px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140"><rect fill="%23f0f0f0" width="120" height="140"/><text x="60" y="70" text-anchor="middle" fill="%23666" font-size="12">Student Photo</text></svg>');
+            background-size: cover;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            margin-top: 20px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect fill="white" width="80" height="80"/><rect fill="black" x="5" y="5" width="10" height="10"/><rect fill="black" x="25" y="5" width="10" height="10"/><rect fill="black" x="45" y="5" width="10" height="10"/><rect fill="black" x="65" y="5" width="10" height="10"/><rect fill="black" x="5" y="25" width="10" height="10"/><rect fill="black" x="25" y="25" width="10" height="10"/><rect fill="black" x="45" y="25" width="10" height="10"/><rect fill="black" x="65" y="25" width="10" height="10"/></svg>');
+        }
+        
+        .certificate-content {
+            flex: 2;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .circular-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd700);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .circular-logo::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #228b22, #32cd32);
+            z-index: -1;
+        }
+        
+        .certificate-text {
+            margin: 15px 0;
+        }
+        
+        .student-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #0066cc;
+            margin: 10px 0;
+        }
+        
+        .course-details {
+            margin: 10px 0;
+        }
+        
+        .completion-text {
+            margin: 15px 0;
+            font-style: italic;
+        }
+        
+        .right-section {
+            text-align: center;
+        }
+        
+        .seal-sign {
+            font-size: 10px;
+            color: #666;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            margin-left: 20px;
+        }
+        
+        .footer-logos {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .ministry-logo, .corporate-logo {
+            width: 40px;
+            height: 40px;
+            background: #ddd;
+            border: 1px solid #999;
+        }
+        
+        .date-year {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .certificate {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="header">
+            <div class="foundation-name">Poolmati Devi Educational & Training Foundation</div>
+            <div class="ministry-info">
+                MINISTRY OF CORPORATE AFFAIRS [GOVT. OF INDIA] GOV. REG.106500D2020NPL332240<br>
+                REGD. ADDRESS: 6-3A, SAI NO. 2/18 & 23 ARIH PARK, ANANDNYO NEW DELHI-110001
+            </div>
+            <div class="certificate-title">CERTIFICATE OF COURSE COMPLETION</div>
+        </div>
+        
+        <div class="content-wrapper">
+            <div class="left-section">
+                <div class="photo-placeholder"></div>
+                <div class="qr-code"></div>
+            </div>
+            
+            <div class="certificate-content">
+                <div class="logo-section">
+                    <div class="circular-logo">
+                        PD<br>LOGO
+                    </div>
+                </div>
+                
+                <div class="certificate-text">
+                    This is certified that Mr./Ms. <strong>MANISH</strong>, Father name <strong>Mr. JAI SINGH</strong>. 
+                    Has successfully completed the course in the <strong>CG/04/2925</strong> year Enroll no. <strong>Pc022</strong>.
+                </div>
+                
+                <div class="course-details">
+                    Our foundation / Institute is <strong>12 Months</strong> . Grade <strong>A</strong> certificate issue.
+                </div>
+                
+                <div class="completion-text">
+                    We are issuing a training certificate by our foundation/institute.
+                    <br><br>
+                    I wish you all the success, happiness and bright Future.
+                </div>
+            </div>
+            
+            <div class="right-section">
+                <div class="seal-sign">
+                    SEAL & SIGN.
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-logos">
+            <div class="ministry-logo"></div>
+            <div>
+                <div style="font-size: 8px; color: #666;">
+                    MINISTRY OF<br>
+                    CORPORATE<br>
+                    AFFAIRS
+                </div>
+            </div>
+            <div class="corporate-logo"></div>
+        </div>
+    </div>
+</body>
+</html>
