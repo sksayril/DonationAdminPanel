@@ -4,7 +4,9 @@ import apiService from '../../services/apiService';
 interface Student {
   _id: string;
   firstName: string;
+  lastName: string;
   kycStatus: string;
+  studentId: string;
 }
 
 const KYCRequest: React.FC = () => {
@@ -18,16 +20,22 @@ const KYCRequest: React.FC = () => {
 
   const handleKYCApprove = async (studentId: string) => {
     try {
-      const response = await apiService.put(`/students/${studentId}/kyc`, { status: 'approved' });
+      const response = await apiService.post(`/students/${studentId}/approve-kyc`, {
+        studentId: studentId
+      });
       if (response.success) {
         // Update the student's KYC status in the local state
         setStudents(prevStudents => 
           prevStudents.map(student => 
-            student._id === studentId 
+            student.studentId === studentId 
               ? { ...student, kycStatus: 'approved' }
               : student
           )
         );
+        // Show success message
+        setSuccessMessage('KYC approved successfully');
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
         setError('Failed to approve KYC');
       }
@@ -49,7 +57,7 @@ const KYCRequest: React.FC = () => {
     }
 
     try {
-      const response = await apiService.put(`/students/${selectedStudentId}/reject-kyc`, { 
+      const response = await apiService.post(`/students/${selectedStudentId}/reject-kyc`, { 
         reason: declineReason.trim()
       });
       
@@ -57,7 +65,7 @@ const KYCRequest: React.FC = () => {
         // Update the student's KYC status in the local state
         setStudents(prevStudents => 
           prevStudents.map(student => 
-            student._id === selectedStudentId 
+            student.studentId === selectedStudentId 
               ? { ...student, kycStatus: 'declined' }
               : student
           )
@@ -148,21 +156,36 @@ const KYCRequest: React.FC = () => {
                 </span>
                 {student.kycStatus === 'approved' ? (
                   <button
-                    onClick={() => handleKYCDecline(student._id)}
+                    onClick={() => handleKYCDecline(student.studentId)}
                     className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
                   >
                     Decline KYC
                   </button>
+                ) : student.kycStatus === 'submitted' ? (
+                  <>
+                    <button
+                      onClick={() => handleKYCApprove(student.studentId)}
+                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+                    >
+                      Approve KYC
+                    </button>
+                    <button
+                      onClick={() => handleKYCDecline(student.studentId)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
+                      Decline KYC
+                    </button>
+                  </>
                 ) : student.kycStatus === 'pending' ? (
                   <button
-                    onClick={() => handleKYCApprove(student._id)}
+                    onClick={() => handleKYCApprove(student.studentId)}
                     className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
                   >
                     Approve KYC
                   </button>
                 ) : student.kycStatus === 'declined' ? (
                   <button
-                    onClick={() => handleKYCApprove(student._id)}
+                    onClick={() => handleKYCApprove(student.studentId)}
                     className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
                   >
                     Approve KYC

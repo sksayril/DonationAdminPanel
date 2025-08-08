@@ -30,14 +30,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state - but don't auto-login from stored data
+  // Initialize auth state - check for existing token and admin data
   useEffect(() => {
-    const initializeAuth = () => {
-      // Always start with unauthenticated state
-      // User must manually login each time
-      setIsAuthenticated(false);
-      setAdminData(null);
-      setIsLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const token = apiService.getStoredToken();
+        const storedAdminData = apiService.getStoredAdminData();
+        
+        console.log('Initializing auth - Token exists:', !!token);
+        console.log('Initializing auth - Admin data exists:', !!storedAdminData);
+        
+        if (token && storedAdminData) {
+          // Verify the token is still valid by making a test API call
+          try {
+            const response = await apiService.getAdminProfile();
+            
+            if (response.success) {
+              // Token is valid, restore the session
+              console.log('Token is valid, restoring session');
+              setIsAuthenticated(true);
+              setAdminData(storedAdminData);
+            } else {
+              // Token is invalid, clear stored data
+              console.log('Token is invalid, clearing stored data');
+              apiService.removeAuthToken();
+              setIsAuthenticated(false);
+              setAdminData(null);
+            }
+          } catch (error) {
+            // API call failed, assume token is invalid
+            console.error('Token validation failed:', error);
+            apiService.removeAuthToken();
+            setIsAuthenticated(false);
+            setAdminData(null);
+          }
+        } else {
+          // No token or admin data, user needs to login
+          console.log('No token or admin data found, user needs to login');
+          setIsAuthenticated(false);
+          setAdminData(null);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setIsAuthenticated(false);
+        setAdminData(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initializeAuth();
@@ -65,6 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    console.log('User explicitly logged out');
     apiService.logout();
     setIsAuthenticated(false);
     setAdminData(null);

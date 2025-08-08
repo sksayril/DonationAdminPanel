@@ -13,11 +13,25 @@ interface BatchFormData {
   originalPrice: number;
 }
 
+interface Course {
+  _id: string;
+  title: string;
+  description?: string;
+  courseType: string;
+  duration?: string;
+  price?: number;
+  isActive: boolean;
+}
+
 interface ApiBatch {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  courseId: string;
+  course: {
+    _id: string;
+    title: string;
+    courseType: string;
+  };
   startDate: string;
   endDate: string;
   status: 'upcoming' | 'active' | 'completed' | 'cancelled';
@@ -25,9 +39,23 @@ interface ApiBatch {
   currentStudents: number;
   batchPrice: number;
   originalPrice: number;
-  schedule: string;
+  schedule: Array<{
+    day: string;
+    startTime: string;
+    endTime: string;
+    room: string;
+    _id: string;
+  }>;
+  isActive: boolean;
+  createdBy: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
   createdAt: string;
   updatedAt: string;
+  batchId: string;
+  discountPercentage: number;
 }
 
 interface BatchFilters {
@@ -45,6 +73,10 @@ const Batch: React.FC = () => {
   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
   const [apiBatches, setApiBatches] = useState<ApiBatch[]>([]);
   const [batchError, setBatchError] = useState<string>('');
+  const [batchSuccess, setBatchSuccess] = useState<string>('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [courseError, setCourseError] = useState<string>('');
   const [filters, setFilters] = useState<BatchFilters>({
     page: 1,
     limit: 10
@@ -121,12 +153,24 @@ const Batch: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'maxStudents' || name === 'batchPrice' || name === 'originalPrice' 
-        ? parseInt(value) || 0 
-        : value
-    }));
+    
+    if (name === 'courseId') {
+      // Auto-populate batch price when course is selected
+      const selectedCourse = courses.find(course => course._id === value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        batchPrice: selectedCourse?.price || 0,
+        originalPrice: selectedCourse?.price || 0
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'maxStudents' || name === 'batchPrice' || name === 'originalPrice' 
+          ? parseInt(value) || 0 
+          : value
+      }));
+    }
   };
 
   const fetchBatches = async (filters: BatchFilters = {}) => {
@@ -149,21 +193,46 @@ const Batch: React.FC = () => {
 
       const url = `http://localhost:3100/api/admin/batches${params.toString() ? `?${params.toString()}` : ''}`;
       
+      console.log('Fetching batches from:', url);
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: headers
       });
 
+      console.log('Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setApiBatches(data.batches || data); // Handle both array and paginated response
+        console.log('API Response:', data);
+        
+        // Handle the new API response structure
+        if (data.success && data.data && data.data.batches) {
+          setApiBatches(data.data.batches);
+          setBatchSuccess(`Successfully loaded ${data.data.batches.length} batch(es)`);
+          setBatchError('');
+          console.log('Batches set:', data.data.batches);
+        } else if (data.batches) {
+          // Fallback for different response structure
+          setApiBatches(data.batches);
+          setBatchSuccess(`Successfully loaded ${data.batches.length} batch(es)`);
+          setBatchError('');
+        } else {
+          setApiBatches([]);
+          setBatchSuccess('No batches found');
+          setBatchError('');
+          console.log('No batches found in response');
+        }
       } else {
         const errorData = await response.json();
+        console.error('API Error:', errorData);
         setBatchError(errorData.message || 'Failed to fetch batches');
+        setBatchSuccess('');
       }
     } catch (error) {
       console.error('Error fetching batches:', error);
       setBatchError('An unexpected error occurred while fetching batches');
+      setBatchSuccess('');
     } finally {
       setIsLoadingBatches(false);
     }
@@ -171,6 +240,58 @@ const Batch: React.FC = () => {
 
   const handleGetAllBatches = () => {
     fetchBatches();
+  };
+
+  // Fetch courses from API
+  const fetchCourses = async () => {
+    setIsLoadingCourses(true);
+    setCourseError('');
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers = {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      };
+
+      console.log('Fetching courses from API...');
+      
+      const response = await fetch('http://localhost:3100/api/admin/courses', {
+        method: 'GET',
+        headers: headers
+      });
+
+      console.log('Courses API Response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Courses API Response:', data);
+        
+        // Handle different response structures
+        if (data.success && data.data && data.data.courses) {
+          setCourses(data.data.courses);
+          console.log('Courses set:', data.data.courses);
+        } else if (data.courses) {
+          setCourses(data.courses);
+          console.log('Courses set:', data.courses);
+        } else if (Array.isArray(data)) {
+          setCourses(data);
+          console.log('Courses set (array):', data);
+        } else {
+          setCourses([]);
+          console.log('No courses found in response');
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Courses API Error:', errorData);
+        setCourseError(errorData.message || 'Failed to fetch courses');
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCourseError('An unexpected error occurred while fetching courses');
+    } finally {
+      setIsLoadingCourses(false);
+    }
   };
 
   // Test API connection with sample data
@@ -552,6 +673,12 @@ const Batch: React.FC = () => {
     setSuccessMessage(null);
   };
 
+  const handleOpenModal = () => {
+    setShowModal(true);
+    // Fetch courses when modal opens
+    fetchCourses();
+  };
+
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -570,52 +697,59 @@ const Batch: React.FC = () => {
 
   // Validate form data before submission
   const validateFormData = (data: BatchFormData): string | null => {
-    if (!data.name.trim()) return 'Batch name is required';
-    if (!data.description.trim()) return 'Description is required';
-    if (!data.courseId.trim()) return 'Course ID is required';
-    if (!data.startDate) return 'Start date is required';
-    if (!data.endDate) return 'End date is required';
-    if (new Date(data.startDate) >= new Date(data.endDate)) {
-      return 'End date must be after start date';
+    // Name validation
+    if (!data.name || data.name.trim() === '') {
+      return 'Batch name is required.';
     }
-    if (data.maxStudents <= 0) return 'Max students must be greater than 0';
-    if (data.batchPrice < 0) return 'Batch price cannot be negative';
-    if (data.originalPrice < 0) return 'Original price cannot be negative';
-    if (data.batchPrice > data.originalPrice) {
-      return 'Batch price cannot be higher than original price';
+    if (data.name.length > 100) {
+      return 'Batch name cannot exceed 100 characters.';
     }
-    
-    // Validate schedule JSON - ensure it matches the API requirements
+
+    // Course ID validation (basic check for MongoDB ObjectId format)
+    if (!data.courseId || !/^[0-9a-fA-F]{24}$/.test(data.courseId)) {
+      return 'A valid Course ID is required.';
+    }
+
+    // Start and End Date validation
+    if (!data.startDate) {
+      return 'Start date is required.';
+    }
+    if (!data.endDate) {
+      return 'End date is required.';
+    }
+    const startDate = new Date(data.startDate);
+    const endDate = new Date(data.endDate);
+    if (isNaN(startDate.getTime())) {
+      return 'Invalid start date format.';
+    }
+    if (isNaN(endDate.getTime())) {
+      return 'Invalid end date format.';
+    }
+    if (startDate >= endDate) {
+      return 'End date must be after the start date.';
+    }
+
+    // Schedule validation
     try {
       const schedule = JSON.parse(data.schedule);
-      
-      // Check if it's an array
-      if (!Array.isArray(schedule)) {
-        return 'Schedule must be an array';
+      if (!Array.isArray(schedule) || schedule.length === 0) {
+        return 'Schedule is required and must be a non-empty array.';
       }
-      
-      // Check if array is empty
-      if (schedule.length === 0) {
-        return 'At least one schedule entry is required';
-      }
-      
-      // Validate each schedule entry
-      for (const entry of schedule) {
-        if (!entry.day) return 'Each schedule entry must have a day';
-        if (!entry.startTime) return 'Each schedule entry must have a start time';
-        if (!entry.endTime) return 'Each schedule entry must have an end time';
-        if (!entry.room) return 'Each schedule entry must have a room';
-      }
-      
-      // Ensure the schedule is properly formatted as a string for the API
-      const formattedSchedule = JSON.stringify(schedule);
-      console.log('Validated schedule format:', formattedSchedule);
     } catch (error) {
-      console.error('Schedule validation error:', error);
-      return 'Invalid schedule format. Please check the schedule entries.';
+      return 'Schedule must be a valid JSON array.';
     }
-    
-    return null;
+
+    // Max Students validation
+    if (data.maxStudents === undefined || data.maxStudents <= 0) {
+      return 'Maximum students must be a positive number.';
+    }
+
+    // Batch Price validation
+    if (data.batchPrice === undefined || data.batchPrice < 0) {
+      return 'Batch price cannot be negative.';
+    }
+
+    return null; // All validations passed
   };
 
   return (
@@ -632,7 +766,7 @@ const Batch: React.FC = () => {
             {isLoadingBatches ? 'Loading...' : 'Get All Batches'}
           </button>
           <button 
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenModal}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -702,6 +836,13 @@ const Batch: React.FC = () => {
         </div>
       </div>
 
+      {/* Success Message */}
+      {batchSuccess && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          {batchSuccess}
+        </div>
+      )}
+
       {/* Error Message */}
       {batchError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -712,21 +853,29 @@ const Batch: React.FC = () => {
       {/* API Batches Display */}
       {apiBatches.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">API Batches ({apiBatches.length})</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">All Batches ({apiBatches.length})</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {apiBatches.map((batch) => (
-              <div key={batch.id} className="bg-white rounded-lg shadow-sm p-4 md:p-6 border hover:shadow-md transition-shadow">
+              <div key={batch._id} className="bg-white rounded-lg shadow-sm p-4 md:p-6 border hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="font-semibold text-gray-800 text-base md:text-lg">{batch.name}</h3>
                     <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
                       <BookOpen className="w-4 h-4" />
-                      Course ID: {batch.courseId}
+                      Course: {batch.course?.title || 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Batch ID: {batch.batchId}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(batch.status)}`}>
-                    {batch.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(batch.status)}`}>
+                      {batch.status}
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${batch.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {batch.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -751,17 +900,58 @@ const Batch: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Price</span>
+                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      End Date
+                    </span>
                     <span className="text-sm font-medium text-gray-800">
-                      ${batch.batchPrice}
+                      {new Date(batch.endDate).toLocaleDateString()}
                     </span>
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Batch Price</span>
+                    <span className="text-sm font-medium text-gray-800">
+                      ₹{batch.batchPrice}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Original Price</span>
+                    <span className="text-sm font-medium text-gray-800 line-through">
+                      ₹{batch.originalPrice}
+                    </span>
+                  </div>
+
+                  {batch.discountPercentage > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Discount</span>
+                      <span className="text-sm font-medium text-green-600">
+                        {batch.discountPercentage}% OFF
+                      </span>
+                    </div>
+                  )}
 
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
                       style={{ width: `${(batch.currentStudents / batch.maxStudents) * 100}%` }}
                     ></div>
+                  </div>
+
+                  {batch.schedule && batch.schedule.length > 0 && (
+                    <div className="mt-3 p-2 bg-gray-50 rounded-md">
+                      <p className="text-xs font-medium text-gray-700 mb-1">Schedule:</p>
+                      {batch.schedule.map((schedule, index) => (
+                        <div key={schedule._id || index} className="text-xs text-gray-600">
+                          {schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1)}: {schedule.startTime} - {schedule.endTime} ({schedule.room})
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 mt-2">
+                    Created by: {batch.createdBy?.firstName} {batch.createdBy?.lastName}
                   </div>
                 </div>
 
@@ -836,16 +1026,50 @@ const Batch: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
-                <input
-                  type="text"
-                  name="courseId"
-                  value={formData.courseId}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="course_id_here"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Course *</label>
+                {isLoadingCourses ? (
+                  <div className="w-full p-2 border rounded-md bg-gray-50 text-gray-500 text-sm">
+                    Loading courses...
+                  </div>
+                ) : courseError ? (
+                  <div className="w-full p-2 border rounded-md bg-red-50 text-red-600 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span>{courseError}</span>
+                      <button
+                        type="button"
+                        onClick={fetchCourses}
+                        className="text-xs bg-red-100 hover:bg-red-200 px-2 py-1 rounded"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <select
+                    name="courseId"
+                    value={formData.courseId}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select a Course</option>
+                    {courses.map((course) => (
+                      <option key={course._id} value={course._id}>
+                        {course.title} - {course.courseType} {course.price ? `(₹${course.price})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {courses.length === 0 && !isLoadingCourses && !courseError && (
+                  <p className="text-xs text-gray-500 mt-1">No courses available</p>
+                )}
+                {formData.courseId && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                    <p className="text-xs text-blue-700">
+                      Selected: {courses.find(c => c._id === formData.courseId)?.title}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -911,175 +1135,179 @@ const Batch: React.FC = () => {
                     required
                   />
                 </div>
-            </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
-              <div className="border rounded-md p-3 bg-gray-50">
-                <div className="flex flex-col space-y-2">
-                  {scheduleData.map((item, index) => (
-                    <div key={index} className="grid grid-cols-4 gap-2">
-                      <select
-                        value={item.day}
-                        onChange={(e) => {
-                          const newSchedule = [...scheduleData];
-                          newSchedule[index].day = e.target.value;
-                          setScheduleData(newSchedule);
-                          
-                          // Update form data with the new schedule immediately
-                          try {
-                            const scheduleJson = JSON.stringify(newSchedule);
-                            setFormData(prev => ({
-                              ...prev,
-                              schedule: scheduleJson
-                            }));
-                            console.log(`Updated schedule[${index}].day to ${e.target.value}`);
-                          } catch (error) {
-                            console.error('Error updating day in schedule:', error);
-                          }
-                        }}
-                        className="p-2 border rounded-md text-sm"
-                      >
-                        <option value="monday">Monday</option>
-                        <option value="tuesday">Tuesday</option>
-                        <option value="wednesday">Wednesday</option>
-                        <option value="thursday">Thursday</option>
-                        <option value="friday">Friday</option>
-                        <option value="saturday">Saturday</option>
-                        <option value="sunday">Sunday</option>
-                      </select>
-                      <input
-                        type="time"
-                        value={item.startTime}
-                        onChange={(e) => {
-                          const newSchedule = [...scheduleData];
-                          newSchedule[index].startTime = e.target.value;
-                          setScheduleData(newSchedule);
-                          
-                          // Update form data with the new schedule immediately
-                          try {
-                            const scheduleJson = JSON.stringify(newSchedule);
-                            setFormData(prev => ({
-                              ...prev,
-                              schedule: scheduleJson
-                            }));
-                            console.log(`Updated schedule[${index}].startTime to ${e.target.value}`);
-                          } catch (error) {
-                            console.error('Error updating startTime in schedule:', error);
-                          }
-                        }}
-                        className="p-2 border rounded-md text-sm"
-                      />
-                      <input
-                        type="time"
-                        value={item.endTime}
-                        onChange={(e) => {
-                          const newSchedule = [...scheduleData];
-                          newSchedule[index].endTime = e.target.value;
-                          setScheduleData(newSchedule);
-                          
-                          // Update form data with the new schedule immediately
-                          try {
-                            const scheduleJson = JSON.stringify(newSchedule);
-                            setFormData(prev => ({
-                              ...prev,
-                              schedule: scheduleJson
-                            }));
-                            console.log(`Updated schedule[${index}].endTime to ${e.target.value}`);
-                          } catch (error) {
-                            console.error('Error updating endTime in schedule:', error);
-                          }
-                        }}
-                        className="p-2 border rounded-md text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={item.room}
-                        placeholder="Room"
-                        onChange={(e) => {
-                          const newSchedule = [...scheduleData];
-                          newSchedule[index].room = e.target.value;
-                          setScheduleData(newSchedule);
-                          
-                          // Update form data with the new schedule immediately
-                          try {
-                            const scheduleJson = JSON.stringify(newSchedule);
-                            setFormData(prev => ({
-                              ...prev,
-                              schedule: scheduleJson
-                            }));
-                            console.log(`Updated schedule[${index}].room to ${e.target.value}`);
-                          } catch (error) {
-                            console.error('Error updating room in schedule:', error);
-                          }
-                        }}
-                        className="p-2 border rounded-md text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 flex justify-between">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newScheduleEntry = {
-                        day: 'monday',
-                        startTime: '09:00',
-                        endTime: '11:00',
-                        room: 'Room 101'
-                      };
-                      const updatedSchedule = [...scheduleData, newScheduleEntry];
-                      setScheduleData(updatedSchedule);
-                      
-                      // Update form data with the new schedule immediately
-                      try {
-                        const scheduleJson = JSON.stringify(updatedSchedule);
-                        setFormData(prev => ({
-                          ...prev,
-                          schedule: scheduleJson
-                        }));
-                      } catch (error) {
-                        console.error('Error updating schedule after adding entry:', error);
-                      }
-                      
-                      console.log('Added new schedule entry, current schedule:', JSON.stringify(updatedSchedule));
-                    }}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    + Add Schedule
-                  </button>
-                  {scheduleData.length > 1 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
+                <div className="border rounded-md p-3 bg-gray-50">
+                  <div className="flex flex-col space-y-2">
+                    {scheduleData.map((item, index) => (
+                      <div key={index} className="grid grid-cols-4 gap-2">
+                        <select
+                          value={item.day}
+                          onChange={(e) => {
+                            const newSchedule = [...scheduleData];
+                            newSchedule[index].day = e.target.value;
+                            setScheduleData(newSchedule);
+                            
+                            // Update form data with the new schedule immediately
+                            try {
+                              const scheduleJson = JSON.stringify(newSchedule);
+                              setFormData(prev => ({
+                                ...prev,
+                                schedule: scheduleJson
+                              }));
+                              console.log(`Updated schedule[${index}].day to ${e.target.value}`);
+                            } catch (error) {
+                              console.error('Error updating day in schedule:', error);
+                            }
+                          }}
+                          className="p-2 border rounded-md text-sm"
+                          required
+                        >
+                          <option value="monday">Monday</option>
+                          <option value="tuesday">Tuesday</option>
+                          <option value="wednesday">Wednesday</option>
+                          <option value="thursday">Thursday</option>
+                          <option value="friday">Friday</option>
+                          <option value="saturday">Saturday</option>
+                          <option value="sunday">Sunday</option>
+                        </select>
+                        <input
+                          type="time"
+                          value={item.startTime}
+                          onChange={(e) => {
+                            const newSchedule = [...scheduleData];
+                            newSchedule[index].startTime = e.target.value;
+                            setScheduleData(newSchedule);
+                            
+                            // Update form data with the new schedule immediately
+                            try {
+                              const scheduleJson = JSON.stringify(newSchedule);
+                              setFormData(prev => ({
+                                ...prev,
+                                schedule: scheduleJson
+                              }));
+                              console.log(`Updated schedule[${index}].startTime to ${e.target.value}`);
+                            } catch (error) {
+                              console.error('Error updating startTime in schedule:', error);
+                            }
+                          }}
+                          className="p-2 border rounded-md text-sm"
+                          required
+                        />
+                        <input
+                          type="time"
+                          value={item.endTime}
+                          onChange={(e) => {
+                            const newSchedule = [...scheduleData];
+                            newSchedule[index].endTime = e.target.value;
+                            setScheduleData(newSchedule);
+                            
+                            // Update form data with the new schedule immediately
+                            try {
+                              const scheduleJson = JSON.stringify(newSchedule);
+                              setFormData(prev => ({
+                                ...prev,
+                                schedule: scheduleJson
+                              }));
+                              console.log(`Updated schedule[${index}].endTime to ${e.target.value}`);
+                            } catch (error) {
+                              console.error('Error updating endTime in schedule:', error);
+                            }
+                          }}
+                          className="p-2 border rounded-md text-sm"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={item.room}
+                          placeholder="Room"
+                          onChange={(e) => {
+                            const newSchedule = [...scheduleData];
+                            newSchedule[index].room = e.target.value;
+                            setScheduleData(newSchedule);
+                            
+                            // Update form data with the new schedule immediately
+                            try {
+                              const scheduleJson = JSON.stringify(newSchedule);
+                              setFormData(prev => ({
+                                ...prev,
+                                schedule: scheduleJson
+                              }));
+                              console.log(`Updated schedule[${index}].room to ${e.target.value}`);
+                            } catch (error) {
+                              console.error('Error updating room in schedule:', error);
+                            }
+                          }}
+                          className="p-2 border rounded-md text-sm"
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex justify-between">
                     <button
                       type="button"
                       onClick={() => {
-                        const newSchedule = [...scheduleData];
-                        newSchedule.pop();
-                        setScheduleData(newSchedule);
-                        
-                        // Log the updated schedule after removal
-                        console.log('Removed last schedule entry, current schedule:', JSON.stringify(newSchedule));
+                        const newScheduleEntry = {
+                          day: 'monday',
+                          startTime: '09:00',
+                          endTime: '11:00',
+                          room: 'Room 101'
+                        };
+                        const updatedSchedule = [...scheduleData, newScheduleEntry];
+                        setScheduleData(updatedSchedule);
                         
                         // Update form data with the new schedule immediately
                         try {
-                          const scheduleJson = JSON.stringify(newSchedule);
+                          const scheduleJson = JSON.stringify(updatedSchedule);
                           setFormData(prev => ({
                             ...prev,
                             schedule: scheduleJson
                           }));
                         } catch (error) {
-                          console.error('Error updating schedule after removal:', error);
+                          console.error('Error updating schedule after adding entry:', error);
                         }
+                        
+                        console.log('Added new schedule entry, current schedule:', JSON.stringify(updatedSchedule));
                       }}
-                      className="text-sm text-red-600 hover:text-red-800"
+                      className="text-sm text-blue-600 hover:text-blue-800"
                     >
-                      - Remove Last
+                      + Add Schedule
                     </button>
-                  )}
+                    {scheduleData.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSchedule = [...scheduleData];
+                          newSchedule.pop();
+                          setScheduleData(newSchedule);
+                          
+                          // Log the updated schedule after removal
+                          console.log('Removed last schedule entry, current schedule:', JSON.stringify(newSchedule));
+                          
+                          // Update form data with the new schedule immediately
+                          try {
+                            const scheduleJson = JSON.stringify(newSchedule);
+                            setFormData(prev => ({
+                              ...prev,
+                              schedule: scheduleJson
+                            }));
+                          } catch (error) {
+                            console.error('Error updating schedule after removal:', error);
+                          }
+                        }}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        - Remove Last
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+              <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={handleCloseModal}
