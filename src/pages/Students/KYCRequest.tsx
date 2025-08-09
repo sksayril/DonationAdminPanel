@@ -1,12 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../../services/apiService';
 
+// Define the structure for KYC documents
+interface KycDocuments {
+  aadharCard: {
+    number: string;
+    document: string;
+  };
+  panCard: {
+    number: string;
+    document: string;
+  };
+  profilePhoto: string;
+}
+
+// Define the Student interface
 interface Student {
   _id: string;
+  studentId: string;
   firstName: string;
   lastName: string;
-  kycStatus: string;
-  studentId: string;
+  kycStatus: 'pending' | 'submitted' | 'approved' | 'declined';
+  kycDocuments: KycDocuments;
+}
+
+// Helper function to create a valid image URL from the backend path
+const getImageUrl = (path: string) => {
+  if (!path) return '';
+  // The base URL of your backend server
+  const baseUrl = 'http://localhost:3100'; 
+  // Extracts the relative path starting from 'uploads'
+  const relativePath = path.split('uploads')[1];
+  if (!relativePath) return '';
+  // Replaces backslashes with forward slashes for URL compatibility
+  return `${baseUrl}/uploads${relativePath.replace(/\\/g, '/')}`;
 }
 
 const KYCRequest: React.FC = () => {
@@ -93,37 +120,40 @@ const KYCRequest: React.FC = () => {
     setError(null);
   };
 
-  useEffect(() => {
-    const fetchKYCRequests = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiService.get('/students');
+  const fetchKYCRequests = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.get('/students');
 
-        // Log the full response for debugging
-        console.log('API Response:', response);
+      // Log the full response for debugging
+      console.log('API Response:', response);
 
         if (response.success && response.data.data && response.data.data.students) {
           const { students } = response.data.data; // Extract students from the response
-          console.log('Students:', students);
-          setStudents(Array.isArray(students) ? students : []);
+          setStudents(students);
         } else {
-          setStudents([]);
-          setError(response.error || 'Failed to fetch KYC requests');
+          setStudents([]); // Set empty array if students are not available
+          setError(response.message || 'Failed to fetch KYC requests');
         }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setStudents([]);
-        setError('An error occurred while fetching KYC requests');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    } catch (err) {
+      console.error('Fetch KYC error:', err);
+      setError('An error occurred while fetching KYC requests');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchKYCRequests();
   }, []);
 
-  // if (isLoading) return <div>Loading...</div>;
-  // if (error) return <div>Error: {error}</div>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl font-semibold text-gray-700">Loading student KYC requests...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg">
@@ -149,18 +179,65 @@ const KYCRequest: React.FC = () => {
               <div className="flex-grow">
                 <h2 className="text-lg font-semibold text-gray-800">{student.firstName}</h2>
                 <p className="text-sm text-gray-600">Student ID: {student._id}</p>
+
+                {/* KYC Documents Display - Small Previews */}
+                {student.kycDocuments && (
+                  <div className="mt-3">
+                    <div className="flex items-center gap-4">
+                      {/* Aadhar Number */}
+                      {student.kycDocuments.aadharCard && (
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Aadhar:</span> {student.kycDocuments.aadharCard.number}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Image Previews */}
+                    <div className="flex gap-3 mt-2">
+                      {/* Profile Photo Preview */}
+                      {student.kycDocuments.profilePhoto && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Profile</p>
+                          <a href={getImageUrl(student.kycDocuments.profilePhoto)} target="_blank" rel="noopener noreferrer">
+                            <img 
+                              src={getImageUrl(student.kycDocuments.profilePhoto)} 
+                              alt="Profile" 
+                              className="w-16 h-16 object-cover rounded border hover:opacity-80 transition-opacity"
+                            />
+                          </a>
+                        </div>
+                      )}
+                      
+                      {/* Aadhar Card Preview */}
+                      {student.kycDocuments.aadharCard?.document && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Aadhar Card</p>
+                          <a href={getImageUrl(student.kycDocuments.aadharCard.document)} target="_blank" rel="noopener noreferrer">
+                            <img 
+                              src={getImageUrl(student.kycDocuments.aadharCard.document)} 
+                              alt="Aadhar Card" 
+                              className="w-16 h-16 object-cover rounded border hover:opacity-80 transition-opacity"
+                            />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-3">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${student.kycStatus === 'approved' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+                  student.kycStatus === 'approved' 
+                    ? 'bg-green-100 text-green-800 border-green-200' 
+                    : student.kycStatus === 'declined' 
+                    ? 'bg-red-100 text-red-800 border-red-200'
+                    : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                }`}>
                   {student.kycStatus.charAt(0).toUpperCase() + student.kycStatus.slice(1)}
                 </span>
                 {student.kycStatus === 'approved' ? (
-                  <button
-                    onClick={() => handleKYCDecline(student.studentId)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
-                  >
-                    Decline KYC
-                  </button>
+                  // No buttons shown for approved KYC
+                  null
                 ) : student.kycStatus === 'submitted' ? (
                   <>
                     <button
@@ -184,12 +261,8 @@ const KYCRequest: React.FC = () => {
                     Approve KYC
                   </button>
                 ) : student.kycStatus === 'declined' ? (
-                  <button
-                    onClick={() => handleKYCApprove(student.studentId)}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
-                  >
-                    Approve KYC
-                  </button>
+                  // No buttons shown for declined KYC
+                  null
                 ) : null}
               </div>
             </div>

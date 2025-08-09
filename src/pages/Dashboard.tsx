@@ -84,8 +84,8 @@ const Dashboard: React.FC = () => {
         const data = await response.json();
         console.log('Dashboard API Response:', data);
 
-        if (response.ok) {
-          setDashboardData(data);
+        if (response.ok && data.data) {
+          setDashboardData(data.data);
         } else {
           setDashboardError(data.message || 'Failed to fetch dashboard data');
         }
@@ -319,34 +319,30 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm text-gray-500">Key metrics overview</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">Total Students</span>
-                    <span className="text-lg font-bold text-blue-600">{dashboardData.totalStudents}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">Active Students</span>
-                    <span className="text-lg font-bold text-green-600">{dashboardData.activeStudents}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">Total Courses</span>
-                    <span className="text-lg font-bold text-purple-600">{dashboardData.totalCourses}</span>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
+                  <span className="text-sm font-medium text-gray-700">Total Students</span>
+                  <span className="text-lg font-bold text-blue-600">{dashboardData.totalStudents}</span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">Total Batches</span>
-                    <span className="text-lg font-bold text-orange-600">{dashboardData.totalBatches}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">Total Enrollments</span>
-                    <span className="text-lg font-bold text-red-600">{dashboardData.totalEnrollments}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-blue-100">
-                    <span className="text-sm font-medium text-gray-700">KYC Approved</span>
-                    <span className="text-lg font-bold text-emerald-600">{dashboardData.kycStats?.approved || 0}</span>
-                  </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-green-100">
+                  <span className="text-sm font-medium text-gray-700">Active Students</span>
+                  <span className="text-lg font-bold text-green-600">{dashboardData.activeStudents}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-purple-100">
+                  <span className="text-sm font-medium text-gray-700">Total Courses</span>
+                  <span className="text-lg font-bold text-purple-600">{dashboardData.totalCourses}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-orange-100">
+                  <span className="text-sm font-medium text-gray-700">Total Batches</span>
+                  <span className="text-lg font-bold text-orange-600">{dashboardData.totalBatches}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-red-100">
+                  <span className="text-sm font-medium text-gray-700">Total Enrollments</span>
+                  <span className="text-lg font-bold text-red-600">{dashboardData.totalEnrollments}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white/60 rounded-xl border border-emerald-100">
+                  <span className="text-sm font-medium text-gray-700">KYC Approved</span>
+                  <span className="text-lg font-bold text-emerald-600">{dashboardData.kycStats?.approved || 0}</span>
                 </div>
               </div>
             </div>

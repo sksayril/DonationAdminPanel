@@ -11,8 +11,8 @@ import GetAllStudents from './pages/Students/GetAllStudents';
 import KYCRequest from './pages/Students/KYCRequest';
 import Batch from './pages/Students/Batch';
 import Courses from './pages/Students/Courses';
-import Fees from './pages/Students/Fees';
-import Revenue from './pages/Students/Revenue';
+// import Fees from './pages/Students/Fees';
+// import Revenue from './pages/Students/Revenue';
 import Certificates from './pages/Certificates';
 import Enrolment from './pages/Enrolment';
 import Marksheet from './pages/Marksheet';
@@ -90,8 +90,8 @@ const AppContent: React.FC = () => {
         <Route path="kyc" element={<KYCRequest />} />
         <Route path="batch" element={<Batch />} />
         <Route path="courses" element={<Courses />} />
-        <Route path="fees" element={<Fees />} />
-        <Route path="revenue" element={<Revenue />} />
+        {/* <Route path="fees" element={<Fees />} />
+        <Route path="revenue" element={<Revenue />} /> */}
       </Route>
       <Route 
         path="/certificate" 

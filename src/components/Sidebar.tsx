@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   <GraduationCap className="w-4 h-4 mr-2" />
                   Courses
                 </Link>
-                <Link
+                {/* <Link
                   to="/students-management/fees"
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm transition-colors ${
@@ -191,7 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                 >
                   <DollarSign className="w-4 h-4 mr-2" />
                   Revenue
-                </Link>
+                </Link> */}
               </div>
             )}
           </div>
