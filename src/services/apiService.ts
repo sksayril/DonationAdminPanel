@@ -1,6 +1,6 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'http://localhost:3100/api/admin';
+const BASE_URL = 'https://t0nzmsdd-3100.inc1.devtunnels.ms/api/admin';
 
 
 
