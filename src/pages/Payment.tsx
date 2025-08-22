@@ -880,7 +880,7 @@ const Payment: React.FC = () => {
                           <button 
                             onClick={() => handleMarkPaymentReceived(request._id)}
                             disabled={isMarkingPaymentReceived === request._id || request.status === 'RECEIVED'}
-                            className={`p-1 rounded transition-colors ${
+                            className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
                               request.status === 'RECEIVED' 
                                 ? 'text-gray-400 cursor-not-allowed' 
                                 : 'text-purple-600 hover:text-purple-900 hover:bg-purple-50'
@@ -890,9 +890,12 @@ const Payment: React.FC = () => {
                             {isMarkingPaymentReceived === request._id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                              <div className="w-4 h-4 flex items-center justify-center">
-                                <div className="w-3 h-3 bg-current rounded-full"></div>
-                              </div>
+                              <>
+                                <div className="w-4 h-4 flex items-center justify-center">
+                                  <div className="w-3 h-3 bg-current rounded-full"></div>
+                                </div>
+                                <span className="text-xs font-medium">Verify Payment</span>
+                              </>
                             )}
                           </button>
                         </div>

@@ -780,9 +780,6 @@ const Society: React.FC = () => {
                   >
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-red-600 transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
               
