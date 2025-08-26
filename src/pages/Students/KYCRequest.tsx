@@ -28,7 +28,7 @@ interface Student {
 const getImageUrl = (path: string) => {
   if (!path) return '';
   // The base URL of your backend server
-  const baseUrl = 'http://localhost:3100'; 
+  const baseUrl = 'http://localhost:3500'; 
   // Extracts the relative path starting from 'uploads'
   const relativePath = path.split('uploads')[1];
   if (!relativePath) return '';

@@ -1,6 +1,6 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'http://localhost:3100/api/admin';
+const BASE_URL = 'http://localhost:3500/api/admin';
 
 
 
@@ -35,6 +35,18 @@ const API_ENDPOINTS = {
     create: '/courses',
     update: '/courses/:id',
     delete: '/courses/:id',
+  },
+  
+  // Loan management endpoints
+  loans: {
+    getAll: '/loans',
+    getById: '/loans/:id',
+    create: '/loans',
+    update: '/loans/:id',
+    delete: '/loans/:id',
+    approve: '/loans/:id/approve',
+    decline: '/loans/:id/decline',
+    updateInterestRate: '/loans/:id/interest-rate',
   },
   
   // Dashboard endpoints
@@ -299,6 +311,36 @@ class ApiService {
     
     const endpoint = `/courses${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return this.get(endpoint);
+  }
+
+  // Get all loans
+  async getAllLoans(): Promise<ApiResponse<any>> {
+    return this.get(API_ENDPOINTS.loans.getAll);
+  }
+
+  // Get loan by ID
+  async getLoanById(loanId: string): Promise<ApiResponse<any>> {
+    return this.get(`/loans/${loanId}`);
+  }
+
+  // Approve loan
+  async approveLoan(loanId: string, data?: any): Promise<ApiResponse<any>> {
+    return this.post(`/loans/${loanId}/approve`, data);
+  }
+
+  // Decline loan
+  async declineLoan(loanId: string, data?: any): Promise<ApiResponse<any>> {
+    return this.post(`/loans/${loanId}/reject`, data);
+  }
+
+  // Update loan details
+  async updateLoan(loanId: string, data?: any): Promise<ApiResponse<any>> {
+    return this.put(`/loans/${loanId}`, data);
+  }
+
+  // Update loan interest rate
+  async updateLoanInterestRate(loanId: string, data?: any): Promise<ApiResponse<any>> {
+    return this.put(`/loans/${loanId}/interest-rate`, data);
   }
 
   async getCourseById(courseId: string): Promise<ApiResponse<any>> {

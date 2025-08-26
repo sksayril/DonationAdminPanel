@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Society from './pages/Society';
 import Payment from './pages/Payment';
+import Loan from './pages/Loan';
 import Students from './pages/Students';
 import StudentsLayout from './pages/Students/StudentsLayout';
 import GetAllStudents from './pages/Students/GetAllStudents';
@@ -75,6 +76,14 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedRoute>
             <Payment />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/loan" 
+        element={
+          <ProtectedRoute>
+            <Loan />
           </ProtectedRoute>
         } 
       />

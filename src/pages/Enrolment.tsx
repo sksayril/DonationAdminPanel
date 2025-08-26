@@ -121,7 +121,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Fetching students from API...');
       
-      const response = await fetch('http://localhost:3100/api/admin/students', {
+      const response = await fetch('http://localhost:3500/api/admin/students', {
         method: 'GET',
         headers: headers
       });
@@ -169,7 +169,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Fetching courses from API...');
       
-      const response = await fetch('http://localhost:3100/api/admin/courses', {
+      const response = await fetch('http://localhost:3500/api/admin/courses', {
         method: 'GET',
         headers: headers
       });
@@ -215,7 +215,7 @@ const Enrolment: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      let url = 'http://localhost:3100/api/admin/batches';
+      let url = 'http://localhost:3500/api/admin/batches';
       if (courseId) {
         url += `?courseId=${courseId}`;
       }
@@ -274,7 +274,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Submitting enrollment data:', formData);
 
-      const response = await fetch('http://localhost:3100/api/admin/enroll-student', {
+      const response = await fetch('http://localhost:3500/api/admin/enroll-student', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(formData)
