@@ -18,6 +18,7 @@ import Courses from './pages/Students/Courses';
 import Certificates from './pages/Certificates';
 import Enrolment from './pages/Enrolment';
 import Marksheet from './pages/Marksheet';
+import SocietyBankStatement from './pages/SocietyBankStatement';
 
 // Loading component for auth initialization
 const LoadingScreen: React.FC = () => (
@@ -68,6 +69,14 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedRoute>
             <Society />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/society/bank-statement" 
+        element={
+          <ProtectedRoute>
+            <SocietyBankStatement />
           </ProtectedRoute>
         } 
       />

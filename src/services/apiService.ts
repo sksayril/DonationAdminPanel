@@ -54,6 +54,12 @@ const API_ENDPOINTS = {
     getStats: '/api/dashboard/stats',
     getRecentActivities: '/api/dashboard/activities',
   },
+  
+  // Society bank documents endpoints
+  societyBank: {
+    getBankDocumentsStatus: '/society-members/bank-documents-status',
+    getMemberBankDocuments: '/society-members/:memberId/bank-documents',
+  },
 };
 
 // Response interface matching the API structure
@@ -341,6 +347,17 @@ class ApiService {
   // Update loan interest rate
   async updateLoanInterestRate(loanId: string, data?: any): Promise<ApiResponse<any>> {
     return this.put(`/loans/${loanId}/interest-rate`, data);
+  }
+
+  // Get society bank documents status
+  async getBankDocumentsStatus(): Promise<ApiResponse<any>> {
+    return this.get(API_ENDPOINTS.societyBank.getBankDocumentsStatus);
+  }
+
+  // Get member bank documents by memberId
+  async getMemberBankDocuments(memberId: string): Promise<ApiResponse<any>> {
+    const endpoint = API_ENDPOINTS.societyBank.getMemberBankDocuments.replace(':memberId', memberId);
+    return this.get(endpoint);
   }
 
   async getCourseById(courseId: string): Promise<ApiResponse<any>> {

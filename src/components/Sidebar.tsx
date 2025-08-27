@@ -16,7 +16,8 @@ import {
   ClipboardList,
   FileText, // Added for Marksheet
   LogOut,
-  HandCoins // Added for Loan
+  HandCoins, // Added for Loan
+  Banknote // Added for Society Bank Statement
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -111,6 +112,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           >
             <HandCoins className="w-5 h-5 mr-3" />
             Loan
+          </Link>
+
+          {/* Society Bank Statement Section */}
+          <Link
+            to="/society/bank-statement"
+            onClick={handleLinkClick}
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              location.pathname === '/society/bank-statement'
+                ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <Banknote className="w-5 h-5 mr-3" />
+            Society Bank Statement
           </Link>
 
           {/* Students Management Dropdown */}

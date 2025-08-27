@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
-import { HandCoins, RefreshCw, AlertCircle, X, User, CreditCard, Calendar, Percent, Target, FileText, Building } from 'lucide-react';
+import { HandCoins, RefreshCw, AlertCircle, X, User, CreditCard, Calendar, Percent, Target, FileText, Building, Filter } from 'lucide-react';
 import Layout from '../components/Layout';
 
 interface Loan {
@@ -35,6 +35,8 @@ interface Loan {
     phone: string;
     memberAccountNumber: string;
   };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const Loan: React.FC = () => {
@@ -46,6 +48,10 @@ const Loan: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [timeFilter, setTimeFilter] = useState<string>('ALL');
   
   // Interest rate update modal states
   const [interestRateModalOpen, setInterestRateModalOpen] = useState(false);
@@ -61,6 +67,90 @@ const Loan: React.FC = () => {
 
   // Ensure loans is always an array
   const safeLoans = Array.isArray(loans) ? loans : [];
+
+  // Filter loans based on status and time period
+  const getFilteredLoans = () => {
+    let filteredLoans = safeLoans;
+
+    // Filter by status
+    if (statusFilter !== 'ALL') {
+      filteredLoans = filteredLoans.filter(loan => loan?.status === statusFilter);
+    }
+
+    // Filter by time period
+    if (timeFilter !== 'ALL') {
+      const now = new Date();
+      let cutoffDate: Date;
+
+      switch (timeFilter) {
+        case 'TODAY':
+          cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'LAST_7_DAYS':
+          cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'LAST_30_DAYS':
+          cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case 'LAST_90_DAYS':
+          cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case 'THIS_MONTH':
+          cutoffDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'THIS_YEAR':
+          cutoffDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        default:
+          cutoffDate = new Date(0); // Beginning of time
+      }
+
+      filteredLoans = filteredLoans.filter(loan => {
+        if (!loan.createdAt) return false;
+        const loanDate = new Date(loan.createdAt);
+        return loanDate >= cutoffDate;
+      });
+    }
+
+    return filteredLoans;
+  };
+
+  const filteredLoans = getFilteredLoans();
+
+  // Get pending loans count for different time periods
+  const getPendingLoansCount = (timeRange: string) => {
+    const now = new Date();
+    let cutoffDate: Date;
+
+    switch (timeRange) {
+      case 'TODAY':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'LAST_7_DAYS':
+        cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'LAST_30_DAYS':
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'LAST_90_DAYS':
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case 'THIS_MONTH':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'THIS_YEAR':
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        return safeLoans.filter(loan => loan?.status === 'PENDING').length;
+    }
+
+    return safeLoans.filter(loan => 
+      loan?.status === 'PENDING' && 
+      loan.createdAt && 
+      new Date(loan.createdAt) >= cutoffDate
+    ).length;
+  };
 
   const fetchLoans = async () => {
     try {
@@ -350,7 +440,9 @@ const Loan: React.FC = () => {
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -393,6 +485,13 @@ const Loan: React.FC = () => {
       </span>
     );
   };
+
+  const clearFilters = () => {
+    setStatusFilter('ALL');
+    setTimeFilter('ALL');
+  };
+
+  const isFilterActive = statusFilter !== 'ALL' || timeFilter !== 'ALL';
 
   if (loading) {
     return (
@@ -450,8 +549,13 @@ const Loan: React.FC = () => {
                 <HandCoins className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Loans</p>
-                <p className="text-2xl font-bold text-gray-900">{safeLoans.length}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {isFilterActive ? 'Filtered Loans' : 'Total Loans'}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">{filteredLoans.length}</p>
+                {isFilterActive && (
+                  <p className="text-xs text-gray-500">of {safeLoans.length} total</p>
+                )}
               </div>
             </div>
           </div>
@@ -462,10 +566,17 @@ const Loan: React.FC = () => {
                 <HandCoins className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(safeLoans.reduce((sum, loan) => sum + (loan?.amount || 0), 0))}
+                <p className="text-sm font-medium text-gray-600">
+                  {isFilterActive ? 'Filtered Amount' : 'Total Amount'}
                 </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(filteredLoans.reduce((sum, loan) => sum + (loan?.amount || 0), 0))}
+                </p>
+                {isFilterActive && (
+                  <p className="text-xs text-gray-500">
+                    of {formatCurrency(safeLoans.reduce((sum, loan) => sum + (loan?.amount || 0), 0))}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -476,10 +587,17 @@ const Loan: React.FC = () => {
                 <HandCoins className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending Loans</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {safeLoans.filter(loan => loan?.status === 'PENDING').length}
+                <p className="text-sm font-medium text-gray-600">
+                  {isFilterActive ? 'Filtered Pending' : 'Pending Loans'}
                 </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {filteredLoans.filter(loan => loan?.status === 'PENDING').length}
+                </p>
+                {isFilterActive && (
+                  <p className="text-xs text-gray-500">
+                    of {safeLoans.filter(loan => loan?.status === 'PENDING').length} total pending
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -490,24 +608,91 @@ const Loan: React.FC = () => {
                 <HandCoins className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Avg Interest Rate</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {isFilterActive ? 'Filtered Avg Rate' : 'Avg Interest Rate'}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {safeLoans.length > 0 
-                    ? `${(safeLoans.reduce((sum, loan) => sum + (loan?.interestRate || 0), 0) / safeLoans.length).toFixed(1)}%`
+                  {filteredLoans.length > 0 
+                    ? `${(filteredLoans.reduce((sum, loan) => sum + (loan?.interestRate || 0), 0) / filteredLoans.length).toFixed(1)}%`
                     : '0%'
                   }
                 </p>
+                {isFilterActive && safeLoans.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    vs {((safeLoans.reduce((sum, loan) => sum + (loan?.interestRate || 0), 0) / safeLoans.length)).toFixed(1)}% overall
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </div>
+
+                 {/* Filters */}
+         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+           <div className="flex items-center space-x-4">
+             <div className="flex items-center">
+               <Filter className="h-4 w-4 text-gray-500 mr-2" />
+               <span className="text-sm font-medium text-gray-700">Filter by:</span>
+             </div>
+             <select
+               value={statusFilter}
+               onChange={(e) => setStatusFilter(e.target.value)}
+               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+             >
+               <option value="ALL">All Statuses</option>
+               <option value="PENDING">Pending</option>
+               <option value="APPROVED">Approved</option>
+               <option value="REJECTED">Rejected</option>
+               <option value="OVERDUE">Overdue</option>
+               <option value="COMPLETED">Completed</option>
+             </select>
+             <select
+               value={timeFilter}
+               onChange={(e) => setTimeFilter(e.target.value)}
+               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+             >
+               <option value="ALL">All Time</option>
+               <option value="TODAY">Today</option>
+               <option value="LAST_7_DAYS">Last 7 Days</option>
+               <option value="LAST_30_DAYS">Last 30 Days</option>
+               <option value="LAST_90_DAYS">Last 90 Days</option>
+               <option value="THIS_MONTH">This Month</option>
+               <option value="THIS_YEAR">This Year</option>
+             </select>
+             {isFilterActive && (
+               <button
+                 onClick={clearFilters}
+                 className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors"
+               >
+                 Clear Filters
+               </button>
+             )}
+           </div>
+           
+           {/* Filter Summary */}
+           {isFilterActive && (
+             <div className="flex items-center space-x-2 text-sm text-gray-600">
+               <span className="font-medium">Active Filters:</span>
+               {statusFilter !== 'ALL' && (
+                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                   Status: {statusFilter}
+                 </span>
+               )}
+               {timeFilter !== 'ALL' && (
+                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                   Time: {timeFilter.replace(/_/g, ' ')}
+                 </span>
+               )}
+             </div>
+           )}
+         </div>
 
         {/* Loans Table */}
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
-                All Loans ({safeLoans.length})
+                All Loans ({filteredLoans.length})
               </h3>
               <p className="text-sm text-gray-500">
                 💡 Click on any loan row to view detailed information
@@ -515,7 +700,7 @@ const Loan: React.FC = () => {
             </div>
           </div>
           
-          {safeLoans.length === 0 ? (
+          {filteredLoans.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <HandCoins className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No loans found</h3>
@@ -553,13 +738,16 @@ const Loan: React.FC = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                       EMI Amount
                     </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                      Created Date
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {safeLoans.map((loan) => (
+                  {filteredLoans.map((loan) => (
                     <tr 
                       key={loan?.loanId || Math.random()} 
                       className="hover:bg-blue-50 cursor-pointer transition-colors duration-200 border-l-4 border-l-transparent hover:border-l-blue-500"
@@ -609,6 +797,11 @@ const Loan: React.FC = () => {
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="truncate max-w-28">
                           {loan?.emiAmount ? formatCurrency(loan.emiAmount) : 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div className="truncate max-w-36">
+                          {loan?.createdAt ? formatDate(loan.createdAt) : 'N/A'}
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
