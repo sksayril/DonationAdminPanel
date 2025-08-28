@@ -13,12 +13,11 @@ import GetAllStudents from './pages/Students/GetAllStudents';
 import KYCRequest from './pages/Students/KYCRequest';
 import Batch from './pages/Students/Batch';
 import Courses from './pages/Students/Courses';
-// import Fees from './pages/Students/Fees';
-// import Revenue from './pages/Students/Revenue';
 import Certificates from './pages/Certificates';
 import Enrolment from './pages/Enrolment';
 import Marksheet from './pages/Marksheet';
 import SocietyBankStatement from './pages/SocietyBankStatement';
+import MemberReceipt from './pages/MemberReceipt';
 
 // Loading component for auth initialization
 const LoadingScreen: React.FC = () => (
@@ -77,6 +76,14 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedRoute>
             <SocietyBankStatement />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/member-receipt" 
+        element={
+          <ProtectedRoute>
+            <MemberReceipt />
           </ProtectedRoute>
         } 
       />
