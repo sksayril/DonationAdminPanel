@@ -288,7 +288,7 @@ const SocietyBankStatement: React.FC = () => {
     }
     
     // Construct full URL by combining backend base URL with relative path
-    const backendBaseUrl = 'http://localhost:3500'; // Backend server URL
+    const backendBaseUrl = 'https://psmw75hs-3500.inc1.devtunnels.ms'; // Backend server URL
     const fullUrl = `${backendBaseUrl}${relativePath}`;
     console.log('🔗 getFullImageUrl: Constructed full URL:', fullUrl);
     return fullUrl;

@@ -112,7 +112,7 @@ const Society: React.FC = () => {
       }
 
       // Call KYC update API
-      const response = await fetch(`http://localhost:3500/api/admin-society/members/${memberId}/kyc`, {
+      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/members/${memberId}/kyc`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -203,7 +203,7 @@ const Society: React.FC = () => {
       }
 
       // Call update member API
-      const response = await fetch(`http://localhost:3500/api/admin-society/members/${editingMember._id}`, {
+      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/members/${editingMember._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -263,7 +263,7 @@ const Society: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:3500/api/admin-society/kyc/pending', {
+      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/kyc/pending', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -453,7 +453,7 @@ const Society: React.FC = () => {
       }
 
       // Call create agent API
-      const response = await fetch('http://localhost:3500/api/admin-society/agents', {
+      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/agents', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -507,7 +507,7 @@ const Society: React.FC = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:3500/api/admin-society/members', {
+      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/members', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -555,7 +555,7 @@ const Society: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3500/api/admin-society/members/${memberId}`, {
+      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/members/${memberId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

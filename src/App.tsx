@@ -18,6 +18,7 @@ import Enrolment from './pages/Enrolment';
 import Marksheet from './pages/Marksheet';
 import SocietyBankStatement from './pages/SocietyBankStatement';
 import MemberReceipt from './pages/MemberReceipt';
+import CDPenalty from './pages/CDPenalty';
 
 // Loading component for auth initialization
 const LoadingScreen: React.FC = () => (
@@ -84,6 +85,14 @@ const AppContent: React.FC = () => {
         element={
           <ProtectedRoute>
             <MemberReceipt />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/cd-penalty" 
+        element={
+          <ProtectedRoute>
+            <CDPenalty />
           </ProtectedRoute>
         } 
       />

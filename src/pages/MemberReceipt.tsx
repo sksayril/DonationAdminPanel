@@ -39,7 +39,7 @@ interface ApiResponse {
 
 const MemberReceipt: React.FC = () => {
   // Backend base URL for images
-  const BACKEND_BASE_URL = 'http://localhost:3500';
+  const BACKEND_BASE_URL = 'https://psmw75hs-3500.inc1.devtunnels.ms';
   
   const [receipts, setReceipts] = useState<MemberReceipt[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,6 +1,6 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'http://localhost:3500/api/admin';
+const BASE_URL = 'https://psmw75hs-3500.inc1.devtunnels.ms/api/admin';
 
 
 
@@ -59,6 +59,12 @@ const API_ENDPOINTS = {
   societyBank: {
     getBankDocumentsStatus: '/society-members/bank-documents-status',
     getMemberBankDocuments: '/society-members/:memberId/bank-documents',
+  },
+  
+  // CD Penalty endpoints
+  cdPenalty: {
+    getAll: '/payment-requests/admin/cd-penalties',
+    getByMember: '/payment-requests/admin/cd-penalties/member/:memberId',
   },
 };
 
@@ -358,6 +364,76 @@ class ApiService {
   async getMemberBankDocuments(memberId: string): Promise<ApiResponse<any>> {
     const endpoint = API_ENDPOINTS.societyBank.getMemberBankDocuments.replace(':memberId', memberId);
     return this.get(endpoint);
+  }
+
+  // Get CD Penalties with pagination
+  async getCDPenalties(page: number = 1, limit: number = 10): Promise<ApiResponse<any>> {
+    // Use the full URL since this endpoint is not under the admin base URL
+    const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/cd-penalties?page=${page}&limit=${limit}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': this.defaultHeaders['Authorization'] || '',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        success: true,
+        data: data,
+        message: data.message || 'CD Penalties fetched successfully',
+      };
+    } catch (error) {
+      console.error('Error fetching CD penalties:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch CD penalties',
+      };
+    }
+  }
+
+  // Get CD Penalties by member ID
+  async getCDPenaltiesByMember(memberId: string, page: number = 1, limit: number = 10): Promise<ApiResponse<any>> {
+    // Use the full URL since this endpoint is not under the admin base URL
+    const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/cd-penalties/member/${memberId}?page=${page}&limit=${limit}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': this.defaultHeaders['Authorization'] || '',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        success: true,
+        data: data,
+        message: data.message || 'CD Penalties fetched successfully',
+      };
+    } catch (error) {
+      console.error('Error fetching CD penalties by member:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch CD penalties by member',
+      };
+    }
   }
 
   async getCourseById(courseId: string): Promise<ApiResponse<any>> {

@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
           'Content-Type': 'application/json'
         };
 
-        const response = await fetch('http://localhost:3500/api/admin/dashboard', {
+        const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/dashboard', {
           method: 'GET',
           headers: headers
         });

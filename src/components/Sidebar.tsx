@@ -18,7 +18,8 @@ import {
   LogOut,
   HandCoins, // Added for Loan
   Banknote, // Added for Society Bank Statement
-  Receipt // Added for Member Receipt
+  Receipt, // Added for Member Receipt
+  AlertTriangle // Added for CD Penalty
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -126,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             }`}
           >
             <Banknote className="w-5 h-5 mr-3" />
-            Society Bank Statement
+            Member Bank Statement
           </Link>
 
           {/* Member Receipt Section */}
@@ -141,6 +142,20 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           >
             <Receipt className="w-5 h-5 mr-3" />
             Member Receipt
+          </Link>
+
+          {/* CD Penalty Section */}
+          <Link
+            to="/cd-penalty"
+            onClick={handleLinkClick}
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+              location.pathname === '/cd-penalty'
+                ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <AlertTriangle className="w-5 h-5 mr-3" />
+            CD Penalty
           </Link>
 
           {/* Students Management Dropdown */}
