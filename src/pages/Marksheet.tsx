@@ -1,81 +1,140 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import { apiService } from '../services/apiService';
+import { FileText } from 'lucide-react';
+import MarksheetModal from '../components/MarksheetModal';
+
+interface StudentItem {
+  _id?: string;
+  firstName?: string;
+  lastName?: string;
+}
 
 const Marksheet: React.FC = () => {
-  const [template, setTemplate] = useState('');
-  const [formData, setFormData] = useState({
-    studentName: 'MANISH',
-    fatherName: 'Mr. JAI SINGH',
-    year: 'CG/04/2925',
-    enrollmentNo: 'Pc022',
-    duration: '12 Months',
-    grade: 'A',
-  });
+  const [students, setStudents] = useState<StudentItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentItem | null>(null);
 
   useEffect(() => {
-    fetch('/marksheet.html')
-      .then(response => response.text())
-      .then(data => setTemplate(data))
-      .catch(error => console.error('Error loading marksheet template:', error));
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await apiService.getAllStudents();
+        
+        if (!response || response.success === false) {
+          throw new Error(response?.error || 'Failed to fetch students');
+        }
+
+        // The API returns: { success: true, data: { students: [...], pagination: {...} } }
+        const outer = response.data as any;
+        const payload = outer?.data ?? outer; // handle potential nesting
+        const list: StudentItem[] = Array.isArray(payload?.students) ? payload.students : [];
+
+        setStudents(list);
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load students');
+        setStudents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleGenerateMarksheet = (student: StudentItem) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
   };
 
-  const getProcessedHtml = () => {
-    if (!template) return '';
-    return template
-      .replace('<strong>MANISH</strong>', `<strong>${formData.studentName}</strong>`)
-      .replace('<strong>Mr. JAI SINGH</strong>', `<strong>${formData.fatherName}</strong>`)
-      .replace('in the <strong>CG/04/2925</strong> year', `in the <strong>${formData.year}</strong> year`)
-      .replace('Enroll no. <strong>Pc022</strong>', `Enroll no. <strong>${formData.enrollmentNo}</strong>`)
-      .replace('is <strong>12 Months</strong>', `is <strong>${formData.duration}</strong>`)
-      .replace('Grade <strong>A</strong> certificate issue', `Grade <strong>${formData.grade}</strong> certificate issue`);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   };
 
   return (
     <Layout>
-      <div className="flex flex-col lg:flex-row gap-4 p-4 h-full">
-        <div className="lg:w-1/3 bg-white p-6 rounded-lg shadow-md overflow-y-auto" style={{ height: 'calc(100vh - 100px)' }}>
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit Marksheet</h2>
-          <form className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Student Name</label>
-              <input type="text" name="studentName" value={formData.studentName} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Father's Name</label>
-              <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Year/Date</label>
-              <input type="text" name="year" value={formData.year} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Enrollment No.</label>
-              <input type="text" name="enrollmentNo" value={formData.enrollmentNo} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Duration</label>
-              <input type="text" name="duration" value={formData.duration} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Grade</label>
-              <input type="text" name="grade" value={formData.grade} onChange={handleInputChange} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" />
-            </div>
-          </form>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Student Marksheets</h1>
+          <p className="text-gray-600">Generate marksheets for students</p>
         </div>
-        <div className="lg:w-2/3 h-full">
-          <iframe
-            srcDoc={getProcessedHtml()}
-            title="Marksheet Preview"
-            className="w-full h-full border-0 bg-white rounded-lg shadow-md"
-            style={{ height: 'calc(100vh - 100px)' }}
-          />
-        </div>
+
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+            <p className="text-gray-600">Loading students...</p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">Students List</h3>
+            </div>
+            
+            {students.length === 0 ? (
+              <div className="p-8 text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No students found.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {students.map((student, index) => (
+                  <div 
+                    key={student._id || `${student.firstName}-${student.lastName}-${index}`}
+                    className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 font-medium text-sm">
+                            {(student.firstName?.charAt(0) || '').toUpperCase()}
+                            {(student.lastName?.charAt(0) || '').toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {(student.firstName || '').trim()} {(student.lastName || '').trim()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Student ID: {student._id || 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleGenerateMarksheet(student)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Generate Marksheet
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      
+      {/* Marksheet Generation Modal */}
+      <MarksheetModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        student={selectedStudent}
+      />
     </Layout>
   );
 };
