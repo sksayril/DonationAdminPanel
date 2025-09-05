@@ -144,7 +144,7 @@ const Payment: React.FC = () => {
         return;
       }
 
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin-society/members', {
+      const response = await fetch('https://api.padyai.co.in/api/admin-society/members', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -180,7 +180,7 @@ const Payment: React.FC = () => {
         return;
       }
 
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/requests', {
+      const response = await fetch('https://api.padyai.co.in/api/payment-requests/admin/requests', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -320,7 +320,7 @@ const Payment: React.FC = () => {
       }
 
       // Call create payment API
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/create', {
+      const response = await fetch('https://api.padyai.co.in/api/payment-requests/admin/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -394,7 +394,7 @@ const Payment: React.FC = () => {
       console.log('Fetching request details for ID:', requestId);
       
       // Use the correct endpoint path as specified in the requirement
-      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/requests/${requestId}`, {
+      const response = await fetch(`https://api.padyai.co.in/api/payment-requests/admin/requests/${requestId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -487,10 +487,10 @@ const Payment: React.FC = () => {
       console.log('Updating payment request with ID:', editingRequest._id);
       console.log('Original form data:', editFormData);
       console.log('Formatted data being sent:', dataToSend);
-      console.log('Full API URL:', `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/requests/${editingRequest._id}`);
+      console.log('Full API URL:', `https://api.padyai.co.in/api/payment-requests/admin/requests/${editingRequest._id}`);
 
       // Call update payment API
-      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/requests/${editingRequest._id}`, {
+      const response = await fetch(`https://api.padyai.co.in/api/payment-requests/admin/requests/${editingRequest._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -588,7 +588,7 @@ const Payment: React.FC = () => {
         params.append('endDate', dateFilters.endDate);
       }
 
-      const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/statistics${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `https://api.padyai.co.in/api/payment-requests/admin/statistics${params.toString() ? `?${params.toString()}` : ''}`;
       
       console.log('Fetching statistics from:', url);
 
@@ -667,7 +667,7 @@ const Payment: React.FC = () => {
       console.log('Form data being sent:', markReceivedFormData);
 
       // Call mark payment as paid API
-      const response = await fetch(`https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/requests/${isMarkingPaymentReceived}/mark-paid`, {
+      const response = await fetch(`https://api.padyai.co.in/api/payment-requests/admin/requests/${isMarkingPaymentReceived}/mark-paid`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

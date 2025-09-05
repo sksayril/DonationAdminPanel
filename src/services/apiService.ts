@@ -1,6 +1,6 @@
 // API Service Configuration
 // Base URL for the Express backend server
-const BASE_URL = 'https://psmw75hs-3500.inc1.devtunnels.ms/api/admin';
+const BASE_URL = 'https://api.padyai.co.in/api/admin';
 
 
 
@@ -369,7 +369,7 @@ class ApiService {
   // Get CD Penalties with pagination
   async getCDPenalties(page: number = 1, limit: number = 10): Promise<ApiResponse<any>> {
     // Use the full URL since this endpoint is not under the admin base URL
-    const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/cd-penalties?page=${page}&limit=${limit}`;
+    const url = `https://api.padyai.co.in/api/payment-requests/admin/cd-penalties?page=${page}&limit=${limit}`;
     
     try {
       const response = await fetch(url, {
@@ -404,7 +404,7 @@ class ApiService {
   // Get CD Penalties by member ID
   async getCDPenaltiesByMember(memberId: string, page: number = 1, limit: number = 10): Promise<ApiResponse<any>> {
     // Use the full URL since this endpoint is not under the admin base URL
-    const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/payment-requests/admin/cd-penalties/member/${memberId}?page=${page}&limit=${limit}`;
+    const url = `https://api.padyai.co.in/api/payment-requests/admin/cd-penalties/member/${memberId}?page=${page}&limit=${limit}`;
     
     try {
       const response = await fetch(url, {

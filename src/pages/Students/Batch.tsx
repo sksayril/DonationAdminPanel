@@ -191,7 +191,7 @@ const Batch: React.FC = () => {
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
 
-      const url = `https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/batches${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `https://api.padyai.co.in/api/admin/batches${params.toString() ? `?${params.toString()}` : ''}`;
       
       console.log('Fetching batches from:', url);
       
@@ -256,7 +256,7 @@ const Batch: React.FC = () => {
 
       console.log('Fetching courses from API...');
       
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/courses', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/courses', {
         method: 'GET',
         headers: headers
       });
@@ -350,7 +350,7 @@ const Batch: React.FC = () => {
       const requestBodyString = JSON.stringify(testData);
       console.log('Exact test request body sent:', requestBodyString);
 
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/batches', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/batches', {
         method: 'POST',
         headers: headers,
         body: requestBodyString
@@ -557,7 +557,7 @@ const Batch: React.FC = () => {
       }
       
       // Make the API call with proper headers and body
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/batches', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/batches', {
         method: 'POST',
         headers: headers,
         body: requestBodyString

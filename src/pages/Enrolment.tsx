@@ -121,7 +121,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Fetching students from API...');
       
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/students', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/students', {
         method: 'GET',
         headers: headers
       });
@@ -169,7 +169,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Fetching courses from API...');
       
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/courses', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/courses', {
         method: 'GET',
         headers: headers
       });
@@ -215,7 +215,7 @@ const Enrolment: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      let url = 'https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/batches';
+      let url = 'https://api.padyai.co.in/api/admin/batches';
       if (courseId) {
         url += `?courseId=${courseId}`;
       }
@@ -274,7 +274,7 @@ const Enrolment: React.FC = () => {
 
       console.log('Submitting enrollment data:', formData);
 
-      const response = await fetch('https://psmw75hs-3500.inc1.devtunnels.ms/api/admin/enroll-student', {
+      const response = await fetch('https://api.padyai.co.in/api/admin/enroll-student', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(formData)
